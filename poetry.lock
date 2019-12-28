@@ -1,0 +1,105 @@
+[[package]]
+category = "main"
+description = "Classes Without Boilerplate"
+name = "attrs"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "19.3.0"
+
+[package.extras]
+azure-pipelines = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "pytest-azurepipelines"]
+dev = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "pre-commit"]
+docs = ["sphinx", "zope.interface"]
+tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+
+[[package]]
+category = "main"
+description = "NumPy is the fundamental package for array computing with Python."
+name = "numpy"
+optional = false
+python-versions = ">=3.5"
+version = "1.18.0"
+
+[[package]]
+category = "main"
+description = "Pure python package for DICOM medical file reading and writing"
+name = "pydicom"
+optional = false
+python-versions = "*"
+version = "1.3.0"
+
+[[package]]
+category = "main"
+description = "SimpleITK is a simplified interface to the Insight Toolkit (ITK) for image registration and segmentation"
+name = "simpleitk"
+optional = false
+python-versions = "*"
+version = "1.2.4"
+
+[metadata]
+content-hash = "9ad8af8531cebcc8653de4781fcd8c98921f850b84bd49d8e299e40b5f3c80b9"
+python-versions = "^3.5"
+
+[metadata.files]
+attrs = [
+    {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
+    {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
+]
+numpy = [
+    {file = "numpy-1.18.0-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:b091e5d4cbbe79f0e8b6b6b522346e54a282eadb06e3fd761e9b6fafc2ca91ad"},
+    {file = "numpy-1.18.0-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:443ab93fc35b31f01db8704681eb2fd82f3a1b2fa08eed2dd0e71f1f57423d4a"},
+    {file = "numpy-1.18.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:88c5ccbc4cadf39f32193a5ef22e3f84674418a9fd877c63322917ae8f295a56"},
+    {file = "numpy-1.18.0-cp35-cp35m-win32.whl", hash = "sha256:e1080e37c090534adb2dd7ae1c59ee883e5d8c3e63d2a4d43c20ee348d0459c5"},
+    {file = "numpy-1.18.0-cp35-cp35m-win_amd64.whl", hash = "sha256:f084d513de729ff10cd72a1f80db468cff464fedb1ef2fea030221a0f62d7ff4"},
+    {file = "numpy-1.18.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:1baefd1fb4695e7f2e305467dbd876d765e6edd30c522894df76f8301efaee36"},
+    {file = "numpy-1.18.0-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:cc070fc43a494e42732d6ae2f6621db040611c1dde64762a40c8418023af56d7"},
+    {file = "numpy-1.18.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:6f8113c8dbfc192b58996ee77333696469ea121d1c44ea429d8fd266e4c6be51"},
+    {file = "numpy-1.18.0-cp36-cp36m-win32.whl", hash = "sha256:a30f5c3e1b1b5d16ec1f03f4df28e08b8a7529d8c920bbed657f4fde61f1fbcd"},
+    {file = "numpy-1.18.0-cp36-cp36m-win_amd64.whl", hash = "sha256:3c68c827689ca0ca713dba598335073ce0966850ec0b30715527dce4ecd84055"},
+    {file = "numpy-1.18.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:f6a7421da632fc01e8a3ecd19c3f7350258d82501a646747664bae9c6a87c731"},
+    {file = "numpy-1.18.0-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:905cd6fa6ac14654a6a32b21fad34670e97881d832e24a3ca32e19b455edb4a8"},
+    {file = "numpy-1.18.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:854f6ed4fa91fa6da5d764558804ba5b0f43a51e5fe9fc4fdc93270b052f188a"},
+    {file = "numpy-1.18.0-cp37-cp37m-win32.whl", hash = "sha256:ac3cf835c334fcc6b74dc4e630f9b5ff7b4c43f7fb2a7813208d95d4e10b5623"},
+    {file = "numpy-1.18.0-cp37-cp37m-win_amd64.whl", hash = "sha256:62506e9e4d2a39c87984f081a2651d4282a1d706b1a82fe9d50a559bb58e705a"},
+    {file = "numpy-1.18.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:9d6de2ad782aae68f7ed0e0e616477fbf693d6d7cc5f0f1505833ff12f84a673"},
+    {file = "numpy-1.18.0-cp38-cp38-manylinux1_i686.whl", hash = "sha256:1c35fb1131362e6090d30286cfda52ddd42e69d3e2bf1fea190a0fad83ea3a18"},
+    {file = "numpy-1.18.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:56710a756c5009af9f35b91a22790701420406d9ac24cf6b652b0e22cfbbb7ff"},
+    {file = "numpy-1.18.0-cp38-cp38-win32.whl", hash = "sha256:03bbde29ac8fba860bb2c53a1525b3604a9b60417855ac3119d89868ec6041c3"},
+    {file = "numpy-1.18.0-cp38-cp38-win_amd64.whl", hash = "sha256:712f0c32555132f4b641b918bdb1fd3c692909ae916a233ce7f50eac2de87e37"},
+    {file = "numpy-1.18.0.zip", hash = "sha256:a9d72d9abaf65628f0f31bbb573b7d9304e43b1e6bbae43149c17737a42764c4"},
+]
+pydicom = [
+    {file = "pydicom-1.3.0-py2.py3-none-any.whl", hash = "sha256:ee3a94de180c6337e1443ce346730a784f9027f56175f61ba4dfda632693b843"},
+    {file = "pydicom-1.3.0.tar.gz", hash = "sha256:585b0a81843dd021a9baa97d955aa99b2b6aac9b46beff4c4bdc2e3cbda621c8"},
+]
+simpleitk = [
+    {file = "SimpleITK-1.2.4-cp27-cp27m-macosx_10_6_x86_64.whl", hash = "sha256:1be0eb4f33f99618829a94bd86e850df1203edbbd13ccca91f2f4e3937b99f44"},
+    {file = "SimpleITK-1.2.4-cp27-cp27m-manylinux1_i686.whl", hash = "sha256:bfc2efde7474bcd406c12830a30099a6fec129114aa670063ba95b1989bafe6b"},
+    {file = "SimpleITK-1.2.4-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:41103b814c4f1fed7f6d3c96a11426c35d20d0983e2534de1795c7e4481efc14"},
+    {file = "SimpleITK-1.2.4-cp27-cp27m-win32.whl", hash = "sha256:cf1ede8cf5aaa6ba714604a4a9bd22238499b40489caee2ad59c0c9e9c741a44"},
+    {file = "SimpleITK-1.2.4-cp27-cp27m-win_amd64.whl", hash = "sha256:a9acfa5c79229086b38bb710adf3a3588b7c5c5949f1053898762a484ceed2aa"},
+    {file = "SimpleITK-1.2.4-cp27-cp27mu-manylinux1_i686.whl", hash = "sha256:695561d683da3c0d7f009d700e860a885d8dd2ded487fcbfe444c3e54c6bdfb5"},
+    {file = "SimpleITK-1.2.4-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:d69aecb47550e2c50b05db889546b8c5b780336057cbd9771a2ac20a04118fb5"},
+    {file = "SimpleITK-1.2.4-cp34-cp34m-manylinux1_i686.whl", hash = "sha256:a24729c714eeaa1a6c29df3ffb6e1928d2f4b7556a5790728fa5ab766dcd153d"},
+    {file = "SimpleITK-1.2.4-cp34-cp34m-manylinux1_x86_64.whl", hash = "sha256:69a6e0781ea419efb4340b26c65edf977e18a4c9d296d82ecc733efc3f9ca082"},
+    {file = "SimpleITK-1.2.4-cp35-cp35m-macosx_10_6_x86_64.whl", hash = "sha256:cfbb53a2c6a9de22884baec878ed7847229e9e2060fe221951290dd5cbb91867"},
+    {file = "SimpleITK-1.2.4-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:2bc13c4566f34a255e7041633a358f4050b5ef0aefde957033f846429a957bb1"},
+    {file = "SimpleITK-1.2.4-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:124482011dedef350860ed0d76dcf9cd35d75455d424a2922e6c8d527c716fd6"},
+    {file = "SimpleITK-1.2.4-cp35-cp35m-win32.whl", hash = "sha256:95601f4fb95336fb0ccd7c93dba5888760fb8ff614aba8a255176722ce03e7d9"},
+    {file = "SimpleITK-1.2.4-cp35-cp35m-win_amd64.whl", hash = "sha256:cb23db770935eb63c99961862fca21a8daef394cc570e928a780d657d91506a6"},
+    {file = "SimpleITK-1.2.4-cp36-cp36m-macosx_10_6_x86_64.whl", hash = "sha256:3f5df96c52392d83fbf9abd47b542e01a9bcaacfb7ca40bae218701038b94c4b"},
+    {file = "SimpleITK-1.2.4-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:ff94f4f48533f827b0f9d589f6a38a28aa0fd4ca8a9ba3c4ee50f31f1ce5ad14"},
+    {file = "SimpleITK-1.2.4-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:9efe874383b159a06a5b7845dbca4dfa8ba7d620bc9c0d2fd2e6e52b74ab6890"},
+    {file = "SimpleITK-1.2.4-cp36-cp36m-win32.whl", hash = "sha256:1ebc7961008f6926163d803ca42eec251e87e3601c16cfd7b95147d6ea8857a0"},
+    {file = "SimpleITK-1.2.4-cp36-cp36m-win_amd64.whl", hash = "sha256:6bf3d32db2b3d9da0ffb2d988bb6d75e86afd6b54a51a6828d4a7ba98117ab7a"},
+    {file = "SimpleITK-1.2.4-cp37-cp37m-macosx_10_6_x86_64.whl", hash = "sha256:bdc1521ee7e197e8019b80abc8039790a170c6ea1b76f091fbe424a56327afbf"},
+    {file = "SimpleITK-1.2.4-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:dc52a622d4ec6accb2179a405553aaac61157e2691b16b33563498c5c7d9ee51"},
+    {file = "SimpleITK-1.2.4-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:884857528ad1d710f44429cc78c580ee5c51f0a5bbb205a4ed10012d722cfde5"},
+    {file = "SimpleITK-1.2.4-cp37-cp37m-win32.whl", hash = "sha256:56c03426f48107624c16ce13ecf689a55d7c5b170dd0096bda6494f1d52b5fa5"},
+    {file = "SimpleITK-1.2.4-cp37-cp37m-win_amd64.whl", hash = "sha256:53e06515eae75baa7c6ad0a205206fa1835f5d57d9afb1996ed0b49f31133d8f"},
+    {file = "SimpleITK-1.2.4-cp38-cp38-macosx_10_6_x86_64.whl", hash = "sha256:74c2467f8c755076e49416e6c07d195bdfc06ea39b6143ceda19460e0d8c9e0b"},
+    {file = "SimpleITK-1.2.4-cp38-cp38-manylinux1_i686.whl", hash = "sha256:bb41e103381981404bee82cf884c56b22633e7c8d29984c1bb2aa1bbe32f6a06"},
+    {file = "SimpleITK-1.2.4-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:3ca6e5f798121bb4c86214a480f74c9211d8d9def7081778083ed97502f37892"},
+    {file = "SimpleITK-1.2.4-cp38-cp38-win32.whl", hash = "sha256:859421aded539f96c022c289120db21cf7e9dadf59652e52dcc18d87c5cd70e4"},
+    {file = "SimpleITK-1.2.4-cp38-cp38-win_amd64.whl", hash = "sha256:0d5b60a090bd978b63238a77b97e4aaf109499048ff7a50b23c0dc9159abfb37"},
+]
