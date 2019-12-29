@@ -1,7 +1,6 @@
 import abc
 import enum
 
-import attr
 import numpy as np
 import pydicom
 import SimpleITK as sitk
@@ -25,23 +24,6 @@ class SegmentsOverlap(enum.Enum):
 class SegmentationType(enum.Enum):
     BINARY = 'BINARY'
     FRACTIONAL = 'FRACTIONAL'
-
-
-@attr.s
-class Code:
-    value = attr.ib()
-    coding_scheme_designator = attr.ib()
-    meaning = attr.ib()
-
-
-@attr.s
-class SegmentInfo:
-    number = attr.ib(type=int)
-    label = attr.ib(type=str)
-    description = attr.ib(type=str)
-    algorithm_type = attr.ib(type=AlgorithmType)
-    property_category = attr.ib(factory=Code)
-    property_type = attr.ib(factory=Code)
 
 
 class _ReaderBase(abc.ABC):
