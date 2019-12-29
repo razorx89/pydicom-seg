@@ -6,6 +6,8 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
+from pydicom_seg import logger
+
 
 class AlgorithmType(enum.Enum):
     AUTOMATIC = 'AUTOMATIC'
@@ -205,7 +207,13 @@ class MultiClassReader(_ReaderBase):
             raise ValueError('Invalid segmentation type, only BINARY is supported for decoding multi-class segmentations.')
 
         # Multi-class decoding requires non-overlapping segmentations
-        segments_overlap = SegmentsOverlap(self.dataset.get('SegmentsOverlap', SegmentsOverlap.UNDEFINED))
+        segments_overlap = self.dataset.get('SegmentsOverlap')
+        if segments_overlap is None:
+            segments_overlap = SegmentsOverlap.UNDEFINED
+            logger.warning('DICOM-SEG does not specify "(0062, 0013) SegmentsOverlap", assuming UNDEFINED and checking pixels')
+        else:
+            segments_overlap = SegmentsOverlap(segments_overlap)
+
         if segments_overlap == SegmentsOverlap.YES:
             raise ValueError('Segmentation contains overlapping segments, cannot read as multi-class.')
 
@@ -232,7 +240,11 @@ class MultiClassReader(_ReaderBase):
             referenced_segment_number = pffg.SegmentIdentificationSequence[0].ReferencedSegmentNumber
             frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
             frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
-            segment_buffer[frame_index[2]][np.greater(self.dataset.pixel_array[frame_id], 0)] = referenced_segment_number
+            binary_mask = np.greater(self.dataset.pixel_array[frame_id], 0)
+            target_voxels = segment_buffer[frame_index[2]][binary_mask]
+            if segments_overlap == SegmentsOverlap.UNDEFINED and target_voxels.any():
+                raise ValueError('Segments are overlapping, cannot decode as multi-class segmentation.')
+            target_voxels = referenced_segment_number
 
         # Construct final SimpleITK image from numpy array
         self.image = sitk.GetImageFromArray(segment_buffer)
