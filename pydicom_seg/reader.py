@@ -45,6 +45,8 @@ class SegmentInfo:
 
 class _ReaderBase(abc.ABC):
     def __init__(self, dataset: pydicom.Dataset):
+        if dataset.SOPClassUID != '1.2.840.10008.5.1.4.1.1.66.4' or dataset.Modality != 'SEG':
+            raise ValueError('DICOM dataset is not a DICOM-SEG storage')
         self._dataset = dataset
 
         self._segment_infos = {}
