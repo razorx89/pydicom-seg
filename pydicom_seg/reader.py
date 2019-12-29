@@ -7,6 +7,7 @@ import pydicom
 import SimpleITK as sitk
 
 from pydicom_seg import logger
+from pydicom_seg import reader_utils
 
 
 class AlgorithmType(enum.Enum):
@@ -49,13 +50,11 @@ class _ReaderBase(abc.ABC):
             raise ValueError('DICOM dataset is not a DICOM-SEG storage')
         self._dataset = dataset
 
-        self._segment_infos = {}
-        self._decode_segments(dataset)
-
-        self._spacing = self._get_declared_image_spacing()
-        self._direction = self._get_image_direction()
+        self._segment_infos = reader_utils.get_segment_map(dataset)
+        self._spacing = reader_utils.get_declared_image_spacing(self.dataset)
+        self._direction = reader_utils.get_image_direction(self.dataset)
         self._direction.flags.writeable = False
-        self._origin, extent = self._get_image_origin_and_extent(self._direction)
+        self._origin, extent = reader_utils.get_image_origin_and_extent(self.dataset, self._direction)
         self._size = (dataset.Rows, dataset.Columns, int(np.ceil(extent / self._spacing[-1]) + 1))
 
         self._decode()
@@ -97,93 +96,6 @@ class _ReaderBase(abc.ABC):
     @abc.abstractmethod
     def _decode(self):
         pass
-
-    def _decode_segments(self, dataset: pydicom.Dataset):
-        for segment in dataset.SegmentSequence:
-            if segment.SegmentNumber in self._segment_infos:
-                raise ValueError(f'Segment {segment.SegmentNumber} was declared more than once.')
-
-            self._segment_infos[segment.SegmentNumber] = SegmentInfo(
-                property_category=Code(
-                    value=segment.SegmentedPropertyCategoryCodeSequence[0].CodeValue,
-                    coding_scheme_designator=segment.SegmentedPropertyCategoryCodeSequence[0].CodingSchemeDesignator,
-                    meaning=segment.SegmentedPropertyCategoryCodeSequence[0].CodeMeaning
-                ),
-                number=segment.SegmentNumber,
-                label=segment.SegmentLabel,
-                description=segment.get('SegmentDescription', ''),
-                algorithm_type=AlgorithmType[segment.SegmentAlgorithmType],
-                property_type=Code(
-                    value=segment.SegmentedPropertyTypeCodeSequence[0].CodeValue,
-                    coding_scheme_designator=segment.SegmentedPropertyTypeCodeSequence[0].CodingSchemeDesignator,
-                    meaning=segment.SegmentedPropertyTypeCodeSequence[0].CodeMeaning
-                )
-            )
-
-    def _get_declared_image_spacing(self):
-        sfg = self._dataset.SharedFunctionalGroupsSequence[0]
-        if 'PixelMeasuresSequence' not in sfg:
-            raise ValueError('Pixel measures FG is missing!')
-
-        pixel_measures = sfg.PixelMeasuresSequence[0]
-        x_spacing, y_spacing = pixel_measures.PixelSpacing
-        if 'SpacingBetweenSlices' in pixel_measures:
-            z_spacing = pixel_measures.SpacingBetweenSlices
-        else:
-            z_spacing = pixel_measures.SliceThickness
-
-        return float(x_spacing), float(y_spacing), float(z_spacing)
-
-    def _get_image_direction(self):
-        sfg = self._dataset.SharedFunctionalGroupsSequence[0]
-        if 'PlaneOrientationSequence' not in sfg:
-            raise ValueError('Plane Orientation (Patient) is missing')
-
-        iop = sfg.PlaneOrientationSequence[0].ImageOrientationPatient
-        assert len(iop) == 6
-
-        # Extract x-vector and y-vector
-        x_dir = [float(x) for x in iop[:3]]
-        y_dir = [float(x) for x in iop[3:]]
-
-        # L2 normalize x-vector and y-vector
-        x_dir /= np.linalg.norm(x_dir)
-        y_dir /= np.linalg.norm(y_dir)
-
-        # Compute perpendicular z-vector
-        z_dir = np.cross(x_dir, y_dir)
-
-        # TODO Maybe incorrect, transpose needed?
-        return np.stack([x_dir, y_dir, z_dir], axis=1)
-
-    def _get_image_origin_and_extent(self, direction: np.ndarray):
-        frames = self._dataset.PerFrameFunctionalGroupsSequence
-        slice_dir = direction[:, 2]
-        reference_position = np.asarray([float(x) for x in frames[0].PlanePositionSequence[0].ImagePositionPatient])
-
-        min_distance = None
-        origin = None
-        distances = {}
-        for frame_idx, frame in enumerate(frames):
-            frame_position = tuple(float(x) for x in frame.PlanePositionSequence[0].ImagePositionPatient)
-            if frame_position in distances:
-                continue
-
-            frame_distance = np.dot(frame_position - reference_position, slice_dir)
-            distances[frame_position] = frame_distance
-
-            if frame_idx == 0 or frame_distance < min_distance:
-                min_distance = frame_distance
-                origin = frame_position
-
-        # Sort all distances ascending and compute extent from minimum and
-        # maximum distance to reference plane
-        distances = sorted(distances.values())
-        extent = 0.0
-        if len(distances) > 1:
-            extent = abs(distances[0] - distances[-1])
-
-        return origin, extent
 
 
 class SegmentReader(_ReaderBase):
