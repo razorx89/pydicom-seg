@@ -45,28 +45,52 @@ class SegmentInfo:
 
 class _ReaderBase(abc.ABC):
     def __init__(self, dataset: pydicom.Dataset):
-        self.dataset = dataset
+        self._dataset = dataset
 
-        self.segment_infos = {}
+        self._segment_infos = {}
         self._decode_segments(dataset)
 
-        self.spacing = self._get_declared_image_spacing()
-        self.direction = self._get_image_direction()
-        self.origin, extent = self._get_image_origin_and_extent(self.direction)
-        self.size = (dataset.Rows, dataset.Columns, int(np.ceil(extent / self.spacing[-1]) + 1))
+        self._spacing = self._get_declared_image_spacing()
+        self._direction = self._get_image_direction()
+        self._direction.flags.writeable = False
+        self._origin, extent = self._get_image_origin_and_extent(self._direction)
+        self._size = (dataset.Rows, dataset.Columns, int(np.ceil(extent / self._spacing[-1]) + 1))
 
         self._decode()
 
     @property
+    def dataset(self):
+        return self._dataset
+
+    @property
+    def direction(self):
+        return self._direction
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
     def referenced_series_uid(self):
-        return self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+        return self._dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
 
     @property
     def referenced_instance_uids(self):
         return [
             x.ReferencedSOPInstanceUID
-            for x in self.dataset.ReferencedSeriesSequence[0].ReferencedInstanceSequence
+            for x in self._dataset.ReferencedSeriesSequence[0].ReferencedInstanceSequence
         ]
+
+    def get_segment_info(self, number):
+        return self._segment_infos[number]
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def spacing(self):
+        return self._spacing
 
     @abc.abstractmethod
     def _decode(self):
@@ -74,10 +98,10 @@ class _ReaderBase(abc.ABC):
 
     def _decode_segments(self, dataset: pydicom.Dataset):
         for segment in dataset.SegmentSequence:
-            if segment.SegmentNumber in self.segment_infos:
+            if segment.SegmentNumber in self._segment_infos:
                 raise ValueError(f'Segment {segment.SegmentNumber} was declared more than once.')
 
-            self.segment_infos[segment.SegmentNumber] = SegmentInfo(
+            self._segment_infos[segment.SegmentNumber] = SegmentInfo(
                 property_category=Code(
                     value=segment.SegmentedPropertyCategoryCodeSequence[0].CodeValue,
                     coding_scheme_designator=segment.SegmentedPropertyCategoryCodeSequence[0].CodingSchemeDesignator,
@@ -95,7 +119,7 @@ class _ReaderBase(abc.ABC):
             )
 
     def _get_declared_image_spacing(self):
-        sfg = self.dataset.SharedFunctionalGroupsSequence[0]
+        sfg = self._dataset.SharedFunctionalGroupsSequence[0]
         if 'PixelMeasuresSequence' not in sfg:
             raise ValueError('Pixel measures FG is missing!')
 
@@ -109,7 +133,7 @@ class _ReaderBase(abc.ABC):
         return float(x_spacing), float(y_spacing), float(z_spacing)
 
     def _get_image_direction(self):
-        sfg = self.dataset.SharedFunctionalGroupsSequence[0]
+        sfg = self._dataset.SharedFunctionalGroupsSequence[0]
         if 'PlaneOrientationSequence' not in sfg:
             raise ValueError('Plane Orientation (Patient) is missing')
 
@@ -131,7 +155,7 @@ class _ReaderBase(abc.ABC):
         return np.stack([x_dir, y_dir, z_dir], axis=1)
 
     def _get_image_origin_and_extent(self, direction: np.ndarray):
-        frames = self.dataset.PerFrameFunctionalGroupsSequence
+        frames = self._dataset.PerFrameFunctionalGroupsSequence
         slice_dir = direction[:, 2]
         reference_position = np.asarray([float(x) for x in frames[0].PlanePositionSequence[0].ImagePositionPatient])
 
@@ -168,8 +192,8 @@ class SegmentReader(_ReaderBase):
         dtype = np.uint8 if segmentation_type == SegmentationType.BINARY else np.float32
         segment_buffer = np.zeros(self.size[::-1], dtype=dtype)
 
-        self.segment_images = {}
-        for segment_number in self.segment_infos:
+        self._segment_images = {}
+        for segment_number in self._segment_infos:
             # Dummy image for computing indices from physical points
             dummy = sitk.Image(1, 1, 1, sitk.sitkUInt8)
             dummy.SetOrigin(self.origin)
@@ -196,7 +220,10 @@ class SegmentReader(_ReaderBase):
             image.SetSpacing(self.spacing)
             image.SetDirection(self.direction.ravel())
 
-            self.segment_images[segment_number] = image
+            self._segment_images[segment_number] = image
+
+    def get_segment_image(self, number):
+        return self._segment_images[number]
 
 
 class MultiClassReader(_ReaderBase):
@@ -219,7 +246,7 @@ class MultiClassReader(_ReaderBase):
 
         # Choose suitable data format for multi-class segmentions, depending
         # on the number of segments
-        max_segment_number = max(self.segment_infos.keys())
+        max_segment_number = max(self._segment_infos.keys())
         if max_segment_number < 256:
             dtype = np.uint8
         else:
@@ -247,7 +274,11 @@ class MultiClassReader(_ReaderBase):
             target_voxels = referenced_segment_number
 
         # Construct final SimpleITK image from numpy array
-        self.image = sitk.GetImageFromArray(segment_buffer)
-        self.image.SetOrigin(self.origin)
-        self.image.SetSpacing(self.spacing)
-        self.image.SetDirection(self.direction.ravel())
+        self._image = sitk.GetImageFromArray(segment_buffer)
+        self._image.SetOrigin(self.origin)
+        self._image.SetSpacing(self.spacing)
+        self._image.SetDirection(self.direction.ravel())
+
+    @property
+    def image(self):
+        return self._image
