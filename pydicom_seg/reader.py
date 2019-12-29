@@ -270,10 +270,9 @@ class MultiClassReader(_ReaderBase):
             frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
             frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
             binary_mask = np.greater(self.dataset.pixel_array[frame_id], 0)
-            target_voxels = segment_buffer[frame_index[2]][binary_mask]
-            if segments_overlap == SegmentsOverlap.UNDEFINED and target_voxels.any():
+            if segments_overlap == SegmentsOverlap.UNDEFINED and segment_buffer[frame_index[2]][binary_mask].any():
                 raise ValueError('Segments are overlapping, cannot decode as multi-class segmentation.')
-            target_voxels = referenced_segment_number
+            segment_buffer[frame_index[2]][binary_mask] = referenced_segment_number
 
         # Construct final SimpleITK image from numpy array
         self._image = sitk.GetImageFromArray(segment_buffer)
