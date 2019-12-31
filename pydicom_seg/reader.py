@@ -139,7 +139,7 @@ class MultiClassReader(_ReaderBase):
             segments_overlap = SegmentsOverlap.UNDEFINED
             logger.warning('DICOM-SEG does not specify "(0062, 0013) SegmentsOverlap", assuming UNDEFINED and checking pixels')
         else:
-            segments_overlap = SegmentsOverlap(segments_overlap)
+            segments_overlap = SegmentsOverlap(segments_overlap.value)
 
         if segments_overlap == SegmentsOverlap.YES:
             raise ValueError('Segmentation contains overlapping segments, cannot read as multi-class.')
