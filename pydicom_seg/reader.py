@@ -1,12 +1,15 @@
 import abc
 import enum
+import logging
 
 import numpy as np
 import pydicom
 import SimpleITK as sitk
 
-from pydicom_seg import logger
 from pydicom_seg import reader_utils
+
+
+logger = logging.getLogger(__name__)
 
 
 class AlgorithmType(enum.Enum):

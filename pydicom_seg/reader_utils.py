@@ -1,9 +1,11 @@
+import logging
 from typing import Mapping, Tuple
 
 import numpy as np
 import pydicom
 
-from pydicom_seg import logger
+
+logger = logging.getLogger(__name__)
 
 
 def get_segment_map(dataset: pydicom.Dataset) -> Mapping[int, pydicom.Dataset]:
