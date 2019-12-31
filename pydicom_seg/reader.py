@@ -40,7 +40,7 @@ class _ReaderBase(abc.ABC):
         self._direction = reader_utils.get_image_direction(self.dataset)
         self._direction.flags.writeable = False
         self._origin, extent = reader_utils.get_image_origin_and_extent(self.dataset, self._direction)
-        self._size = (dataset.Rows, dataset.Columns, int(np.ceil(extent / self._spacing[-1]) + 1))
+        self._size = (dataset.Columns, dataset.Rows, int(np.ceil(extent / self._spacing[-1]) + 1))
 
         self._decode()
 
