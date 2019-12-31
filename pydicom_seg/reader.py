@@ -133,7 +133,8 @@ class MultiClassReader(_ReaderBase):
             raise ValueError('Invalid segmentation type, only BINARY is supported for decoding multi-class segmentations.')
 
         # Multi-class decoding requires non-overlapping segmentations
-        segments_overlap = self.dataset.get('SegmentsOverlap')
+        # TODO Replace with attribute access when pydicom 1.4.0 is released
+        segments_overlap = self.dataset.get(pydicom.tag.Tag(0x0062, 0x0013))  # SegmentsOverlap
         if segments_overlap is None:
             segments_overlap = SegmentsOverlap.UNDEFINED
             logger.warning('DICOM-SEG does not specify "(0062, 0013) SegmentsOverlap", assuming UNDEFINED and checking pixels')
