@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Decoders for the [DICOM-SEG](http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) medical image segmentation storage using [pydicom](https://github.com/pydicom/pydicom) as DICOM serialization/deserialization library.
+Decoder and encoder functionality for [DICOM-SEG](http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) medical image segmentation storage using [pydicom](https://github.com/pydicom/pydicom) as DICOM serialization/deserialization library.
 
 ## Installation
 
