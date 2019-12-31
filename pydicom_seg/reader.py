@@ -91,6 +91,11 @@ class SegmentReader(_ReaderBase):
         dtype = np.uint8 if segmentation_type == SegmentationType.BINARY else np.float32
         segment_buffer = np.zeros(self.size[::-1], dtype=dtype)
 
+        # pydicom decodes single-frame pixel data without a frame dimension
+        frame_pixel_array = self.dataset.pixel_array
+        if self.dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
+            frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
+
         self._segment_images = {}
         for segment_number in self._segment_infos:
             # Dummy image for computing indices from physical points
@@ -105,7 +110,7 @@ class SegmentReader(_ReaderBase):
                     continue
                 frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
                 frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
-                slice_data = self.dataset.pixel_array[frame_idx]
+                slice_data = frame_pixel_array[frame_idx]
 
                 # If it is fractional data, then convert to range [0, 1]
                 if segmentation_type == SegmentationType.FRACTIONAL:
@@ -162,12 +167,17 @@ class MultiClassReader(_ReaderBase):
         dummy.SetSpacing(self.spacing)
         dummy.SetDirection(self.direction.ravel())
 
+        # pydicom decodes single-frame pixel data without a frame dimension
+        frame_pixel_array = self.dataset.pixel_array
+        if self.dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
+            frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
+
         # Iterate over all frames and update buffer with segment mask
         for frame_id, pffg in enumerate(self.dataset.PerFrameFunctionalGroupsSequence):
             referenced_segment_number = pffg.SegmentIdentificationSequence[0].ReferencedSegmentNumber
             frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
             frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
-            binary_mask = np.greater(self.dataset.pixel_array[frame_id], 0)
+            binary_mask = np.greater(frame_pixel_array[frame_id], 0)
             if segments_overlap == SegmentsOverlap.UNDEFINED and segment_buffer[frame_index[2]][binary_mask].any():
                 raise ValueError('Segments are overlapping, cannot decode as multi-class segmentation.')
             segment_buffer[frame_index[2]][binary_mask] = referenced_segment_number
