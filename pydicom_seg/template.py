@@ -162,8 +162,8 @@ def rgb_to_cielab(rgb: Iterable[int]):
     )
 
     # CIELab -> ScaledCIELab (Ref 3)
-    return (
+    return [
         int(tmp[0] * 65535 / 100 + 0.5),
         int((tmp[1] + 128) * 65535 / 255 + 0.5),
         int((tmp[2] + 128) * 65535 / 255 + 0.5)
-    )
+    ]
