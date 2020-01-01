@@ -4,6 +4,12 @@ version = "0.1.0"
 description = "Python packge for DICOM-SEG medical segmentation file reading and writing"
 authors = ["Sven Koitka <sven.koitka@uk-essen.de>"]
 license = "MIT"
+exclude = ["pydicom_seg/externals"]
+include = [
+    "pydicom_seg/externals/dcmqi/LICENSE.txt",
+    "pydicom_seg/externals/dcmqi/doc/schemas/seg-schema.json",
+    "pydicom_seg/externals/dcmqi/doc/schemas/common-schema.json"
+]
 
 [tool.poetry.dependencies]
 python = "^3.5"
