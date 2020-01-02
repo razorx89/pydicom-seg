@@ -165,7 +165,7 @@ class MultiClassWriter:
         # https://github.com/DCMTK/dcmtk/blob/master/dcmseg/libsrc/segdoc.cc#L1419
 
         # Encode all frames into a bytearray
-        encoded_frames = np.packbits(frames).tobytes()
+        encoded_frames = np.packbits(frames, bitorder='little').tobytes()
         num_encoded_bytes = len(encoded_frames)
         if self._inplane_cropping or self._skip_empty_slices:
             max_encoded_bytes = image.GetWidth() * image.GetHeight() * \
