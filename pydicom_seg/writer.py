@@ -18,11 +18,9 @@ class MultiClassWriter:
     def __init__(self,
                  template: pydicom.Dataset,
                  inplane_cropping: bool = True,
-                 only_export_encoded_segments: bool = True,
                  skip_empty_slices: bool = True,
                  skip_missing_segment: bool = True):
         self._inplane_cropping = inplane_cropping
-        self._only_export_encoded_segments = only_export_encoded_segments
         self._skip_empty_slices = skip_empty_slices
         self._skip_missing_segment = skip_missing_segment
         self._template = template
