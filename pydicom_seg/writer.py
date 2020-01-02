@@ -57,14 +57,13 @@ class MultiClassWriter:
 
         # Create target dataset for storing serialized data
         result = pydicom.Dataset()
-        result.ensure_file_meta()
+        result.file_meta = pydicom.Dataset()
         result.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
-        result.file_meta.MediaStorageSOPClassUID = SegmentationStorage
-        result.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-        result.is_little_endian = True
-        result.is_implicit_VR = False
         result.SOPClassUID = SegmentationStorage
-        result.SOPInstanceUID = result.file_meta.MediaStorageSOPInstanceUID
+        result.SOPInstanceUID = pydicom.uid.generate_uid()
+        result.is_little_endian = True  # TODO Unecessary with pydicom 1.4
+        result.is_implicit_VR = False  # TODO Unecessary with pydicom 1.4
+        result.fix_meta_info()
         result.Modality = 'SEG'
         writer_utils.set_binary_segmentation(result)
         writer_utils.set_default_dimension_organization(result)
