@@ -25,9 +25,11 @@ import SimpleITK as sitk
 # Load the DICOM-SEG file
 dcm = pydicom.dcmread('segmentation.dcm')
 # Instantiate a suitable reader for expected segmentation data
-reader = pydicom_seg.MultiClassReader(dcm)
+reader = pydicom_seg.MultiClassReader()
 # Get an ITK image from DICOM (assuming non-overlapping segmentations)
-image = reader.image
+result = reader.read(dcm)
+image_data = result.data  # directly available
+image = result.image  # lazy construction
 # Store segmentation data in a different format or use it for further computations
 sitk.WriteImage(image, '/tmp/segmentation.nrrd', True)
 ```
