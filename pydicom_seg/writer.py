@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Iterable
+from typing import Iterable, List
 
 import numpy as np
 import pydicom
@@ -61,6 +61,10 @@ class MultiClassWriter:
                 component per spatial location.
             source_images: An iterable of `pydicom.Dataset` which are the
                 source images for the segmentation image.
+        
+        Returns:
+            A `pydicom.Dataset` instance with all necessary information and
+            meta information for writing the dataset to disk.
         """
         # TODO Add further checks if source images are from the same series
         slice_to_source_images = self._map_source_images_to_segmentation(
@@ -225,7 +229,22 @@ class MultiClassWriter:
 
     def _map_source_images_to_segmentation(self,
                                            segmentation: sitk.Image,
-                                           source_images: Iterable[pydicom.Dataset]):
+                                           source_images: Iterable[pydicom.Dataset]
+                                           ) -> List[List[pydicom.Dataset]]:
+        """Maps an iterable of source image datasets to the slices of a
+        SimpleITK image.
+
+        Args:
+            segmentation: A `SimpleITK.Image` with integer labels and a single
+                component per spatial location.
+            source_images: An iterable of `pydicom.Dataset` which are the
+                source images for the segmentation image.
+        
+        Returns:
+            A `list` with a `list` for each slice, which contains the mapped
+            `pydicom.Dataset` instances for that slice location. Slices can
+            have zero or more matched datasets.
+        """
         result = [list() for _ in range(segmentation.GetDepth())]
         for source_image in source_images:
             position = [float(x) for x in source_image.ImagePositionPatient]
