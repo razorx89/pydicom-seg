@@ -7,7 +7,7 @@ import pydicom
 from pydicom._storage_sopclass_uids import SegmentationStorage
 import SimpleITK as sitk
 
-from pydicom_seg import writer_utils
+from pydicom_seg import writer_utils, __version__
 
 
 logger = logging.getLogger(__name__)
@@ -63,11 +63,6 @@ class MultiClassWriter:
         result.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
         result.is_little_endian = True
         result.is_implicit_VR = False
-        result.SOPClassUID = SegmentationStorage
-        result.SOPInstanceUID = result.file_meta.MediaStorageSOPInstanceUID
-        result.Modality = 'SEG'
-        writer_utils.set_binary_segmentation(result)
-        writer_utils.set_default_dimension_organization(result)
         writer_utils.import_hierarchy(
             target=result,
             reference=source_images[0],
@@ -79,6 +74,14 @@ class MultiClassWriter:
             segments=unique_labels,
             skip_missing_segment=self._skip_missing_segment
         )
+        result.SOPClassUID = SegmentationStorage
+        result.SOPInstanceUID = result.file_meta.MediaStorageSOPInstanceUID
+        result.Modality = 'SEG'
+        result.Manufacturer = 'pydicom-seg'
+        result.ManufacturerModelName = 'git@github.com/razorx89/pydicom-seg.git'
+        result.SoftwareVersions = __version__
+        writer_utils.set_binary_segmentation(result)
+        writer_utils.set_default_dimension_organization(result)
         writer_utils.set_shared_functional_groups_sequence(
             target=result,
             segmentation=image
