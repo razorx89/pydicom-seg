@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import List
+from typing import Iterable
 
 import numpy as np
 import pydicom
@@ -15,27 +15,61 @@ logger = logging.getLogger(__name__)
 
 
 class MultiClassWriter:
+    """Writer for DICOM-SEG files from multi-class segmentations."""
+
     def __init__(self,
                  template: pydicom.Dataset,
                  inplane_cropping: bool = True,
                  skip_empty_slices: bool = True,
                  skip_missing_segment: bool = True):
+        """ Constructs a new writer instance.
+
+        Writing DICOM-SEGs can be optimized in respect to the required disk
+        space. Empty slices/frames of a 3D volume, containing only zeros, can
+        be omitted from the frame sequence. Furthermore, the segmentation might
+        only span a small area in a slice and thus can be cropped to the
+        minimal enclosing bounding box.
+
+        Args:
+            template: A `pydicom.Dataset` holding all relevant meta information
+                about the DICOM-SEG series. It has the same meaning as the
+                `metainfo.json` file for the dcmqi binaries.
+            inplane_cropping: If enabled, slices will be cropped (Rows/Columns)
+                to the minimum enclosing boundingbox of all labels across all
+                slices.
+            skip_empty_slices: If enabled, empty slices with only zeros 
+                (background label) will be ommited from the DICOM-SEG.
+            skip_missing_segment: If enabled, just emit a warning if segment
+                information is missing in the template for a specific label.
+                The segment won't be included in the final DICOM-SEG. 
+                Otherwise, the encoding is aborted if segment information is
+                missing.
+        """
         self._inplane_cropping = inplane_cropping
         self._skip_empty_slices = skip_empty_slices
         self._skip_missing_segment = skip_missing_segment
         self._template = template
 
     def write(self,
-              image: sitk.Image,
-              source_images: List[pydicom.Dataset]) -> pydicom.Dataset:
+              segmentation: sitk.Image,
+              source_images: Iterable[pydicom.Dataset]) -> pydicom.Dataset:
+        """Writes a DICOM-SEG dataset from a segmentation image and the
+        corresponding DICOM source images.
+
+        Args:
+            segmentation: A `SimpleITK.Image` with integer labels and a single
+                component per spatial location.
+            source_images: An iterable of `pydicom.Dataset` which are the
+                source images for the segmentation image.
+        """
         # TODO Add further checks if source images are from the same series
         slice_to_source_images = self._map_source_images_to_segmentation(
-            image, source_images
+            segmentation, source_images
         )
 
         # Compute unique labels and their respective bounding boxes
         label_statistics_filter = sitk.LabelStatisticsImageFilter()
-        label_statistics_filter.Execute(image, image)
+        label_statistics_filter.Execute(segmentation, segmentation)
         unique_labels = label_statistics_filter.GetLabels()
         if len(unique_labels) == 1 and unique_labels[0] == 0:
             raise ValueError('Segmentation does not contain any labels')
@@ -50,7 +84,7 @@ class MultiClassWriter:
                   f'({min_x}, {min_y}) with size ({max_x - min_x}, {max_y - min_y})')
         else:
             min_x, min_y = 0, 0
-            max_x, max_y = image.GetWidth(), image.GetHeight()
+            max_x, max_y = segmentation.GetWidth(), segmentation.GetHeight()
             print(f'Serializing image planes at full size ({max_x}, {max_y})')
 
         # Create target dataset for storing serialized data
@@ -78,13 +112,13 @@ class MultiClassWriter:
         )
         writer_utils.set_shared_functional_groups_sequence(
             target=result,
-            segmentation=image
+            segmentation=segmentation
         )
         result.ReferencedSeriesSequence = []
         result.PerFrameFunctionalGroupsSequence = []
 
         referenced_source_images = []
-        buffer = sitk.GetArrayFromImage(image)
+        buffer = sitk.GetArrayFromImage(segmentation)
         frames = []
         for segment in [x.SegmentNumber for x in result.SegmentSequence]:
             if segment == 0:
@@ -97,14 +131,14 @@ class MultiClassWriter:
                 bbox = bboxs[segment]
                 min_z, max_z = bbox[4], bbox[5] + 1
             else:
-                min_z, max_z = 0, image.GetDepth()
+                min_z, max_z = 0, segmentation.GetDepth()
             print('Total number of slices that will be processed for segment ' \
                   f'{segment} is {max_z - min_z} (inclusive from {min_z} to {max_z})')
 
             skipped_slices = []
             for slice_idx in range(min_z, max_z):
                 frame_index = (min_x, min_y, slice_idx)
-                frame_position = image.TransformIndexToPhysicalPoint(frame_index)
+                frame_position = segmentation.TransformIndexToPhysicalPoint(frame_index)
                 frame_data = np.equal(buffer[slice_idx, min_y:max_y, min_x:max_x], segment)
                 if self._skip_empty_slices and not frame_data.any():
                     skipped_slices.append(slice_idx)
@@ -165,8 +199,8 @@ class MultiClassWriter:
         encoded_frames = np.packbits(frames, bitorder='little').tobytes()
         num_encoded_bytes = len(encoded_frames)
         if self._inplane_cropping or self._skip_empty_slices:
-            max_encoded_bytes = image.GetWidth() * image.GetHeight() * \
-                image.GetDepth() * len(result.SegmentSequence) // 8
+            max_encoded_bytes = segmentation.GetWidth() * segmentation.GetHeight() * \
+                segmentation.GetDepth() * len(result.SegmentSequence) // 8
             savings = (1 - num_encoded_bytes / max_encoded_bytes) * 100
             print(f'Optimized frame data length is {num_encoded_bytes:,}B ' \
                   f'instead of {max_encoded_bytes:,}B (saved {savings:.2f}%)')
@@ -191,7 +225,7 @@ class MultiClassWriter:
 
     def _map_source_images_to_segmentation(self,
                                            segmentation: sitk.Image,
-                                           source_images: List[pydicom.Dataset]):
+                                           source_images: Iterable[pydicom.Dataset]):
         result = [list() for _ in range(segmentation.GetDepth())]
         for source_image in source_images:
             position = [float(x) for x in source_image.ImagePositionPatient]
