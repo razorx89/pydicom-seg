@@ -36,25 +36,25 @@ def _create_validator():
     )
 
 
-def _create_code_sequence(json: dict) -> pydicom.Sequence:
+def _create_code_sequence(data: dict) -> pydicom.Sequence:
     dataset = pydicom.Dataset()
-    for key in json:
-        dataset.__setattr__(key, json[key])
+    for key in data:
+        dataset.__setattr__(key, data[key])
     return pydicom.Sequence([dataset])
 
 
-def _create_segment_dataset(json: dict) -> pydicom.Dataset:
+def _create_segment_dataset(data: dict) -> pydicom.Dataset:
     dataset = pydicom.Dataset()
 
     # Mandatory fields
-    dataset.SegmentAlgorithmName = json.get('SegmentAlgorithmName', '')
-    dataset.SegmentAlgorithmType = json.get('SegmentAlgorithmType', 'SEMIAUTOMATIC')
-    dataset.SegmentNumber = json['labelID']
+    dataset.SegmentAlgorithmName = data.get('SegmentAlgorithmName', '')
+    dataset.SegmentAlgorithmType = data.get('SegmentAlgorithmType', 'SEMIAUTOMATIC')
+    dataset.SegmentNumber = data['labelID']
     dataset.SegmentedPropertyCategoryCodeSequence = _create_code_sequence(
-        json['SegmentedPropertyCategoryCodeSequence']
+        data['SegmentedPropertyCategoryCodeSequence']
     )
     dataset.SegmentedPropertyTypeCodeSequence = _create_code_sequence(
-        json['SegmentedPropertyTypeCodeSequence']
+        data['SegmentedPropertyTypeCodeSequence']
     )
 
     # Optional fields
@@ -64,8 +64,8 @@ def _create_segment_dataset(json: dict) -> pydicom.Dataset:
         'AnatomicRegionModifierSequence'
     ]
     for code_sequence in optional_code_sequences:
-        if code_sequence in json:
-            dataset.__setattr__(code_sequence, json[code_sequence])
+        if code_sequence in data:
+            dataset.__setattr__(code_sequence, data[code_sequence])
 
     optional_tags_no_default = [
         'SegmentDescription',
@@ -74,14 +74,14 @@ def _create_segment_dataset(json: dict) -> pydicom.Dataset:
         'TrackingUniqueIdentifier'
     ]
     for tag_name in optional_tags_no_default:
-        if tag_name in json:
-            dataset.__setattr__(tag_name, json[tag_name])
+        if tag_name in data:
+            dataset.__setattr__(tag_name, data[tag_name])
 
-    if 'RecommendedDisplayCIELabValue' in json:
-        dataset.RecommendedDisplayCIELabValue = json['RecommendedDisplayCIELabValue']
-    elif 'recommendedDisplayRGBValue' in json:
+    if 'RecommendedDisplayCIELabValue' in data:
+        dataset.RecommendedDisplayCIELabValue = data['RecommendedDisplayCIELabValue']
+    elif 'recommendedDisplayRGBValue' in data:
         dataset.RecommendedDisplayCIELabValue = rgb_to_cielab(
-            json['recommendedDisplayRGBValue']
+            data['recommendedDisplayRGBValue']
         )
 
     return dataset
