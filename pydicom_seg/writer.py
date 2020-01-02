@@ -7,7 +7,7 @@ import pydicom
 from pydicom._storage_sopclass_uids import SegmentationStorage
 import SimpleITK as sitk
 
-from pydicom_seg import writer_utils
+from pydicom_seg import writer_utils, __version__
 
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,9 @@ class MultiClassWriter:
         result.SOPClassUID = SegmentationStorage
         result.SOPInstanceUID = result.file_meta.MediaStorageSOPInstanceUID
         result.Modality = 'SEG'
+        result.Manufacturer = 'pydicom-seg'
+        result.ManufacturerModelName = 'git@github.com/razorx89/pydicom-seg.git'
+        result.SoftwareVersions = __version__
         writer_utils.set_binary_segmentation(result)
         writer_utils.set_default_dimension_organization(result)
         writer_utils.import_hierarchy(
