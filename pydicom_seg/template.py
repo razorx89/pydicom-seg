@@ -115,8 +115,8 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
     `pydicom.Dataset` with the matching DICOM data elements set from JSON.
 
     Those JSON files can be easilly created using the segmentation editor
-    tool from QIICR/dcmqi:
-    http://qiicr.org/dcmqi/#/seg
+    tool from QIICR/dcmqi:  
+    http://qiicr.org/dcmqi/#/seg  
     When converting the JSON to a DICOM dataset, the validity of the provided
     JSON document is ensured using the official JSON schema files from the
     dcmqi project.
