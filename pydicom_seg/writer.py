@@ -15,7 +15,19 @@ logger = logging.getLogger(__name__)
 
 
 class MultiClassWriter:
-    """Writer for DICOM-SEG files from multi-class segmentations."""
+    """Writer for DICOM-SEG files from multi-class segmentations.
+
+    Usage:
+    ```python
+    segmentation = ...  # A multi-class segmentation as SimpleITK image
+    series_dcms = ...  # List of `pydicom.Dataset`s related to the segmentation
+
+    template = pydicom_seg.template.from_dcmqi_metainfo('metainfo.json')
+    writer = MultiClassWriter(template)
+    dcm = writer.write(segmentation, series_dcms)
+    dcm.save_as('<path>')
+    ```
+    """
 
     def __init__(self,
                  template: pydicom.Dataset,
