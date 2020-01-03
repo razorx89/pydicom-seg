@@ -1,8 +1,9 @@
 # pydicom-seg
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python versions](https://img.shields.io/pypi/pyversions/pydicom-seg.svg)]()
+[![Python versions](https://img.shields.io/pypi/pyversions/pydicom-seg.svg)](https://img.shields.io/pypi/pyversions/pydicom-seg.svg)
 [![PyPI version](https://badge.fury.io/py/pydicom-seg.svg)](https://badge.fury.io/py/pydicom-seg)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3597421.svg)](https://doi.org/10.5281/zenodo.3597421)
 
 Reading and writing of [DICOM-SEG](http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) medical image segmentation storage files using [pydicom](https://github.com/pydicom/pydicom) as DICOM serialization/deserialization library.
 
