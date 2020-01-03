@@ -1,8 +1,10 @@
 [tool.poetry]
 name = "pydicom-seg"
 version = "0.1.0"
-description = "Python packge for DICOM-SEG medical segmentation file reading and writing"
+description = "Python package for DICOM-SEG medical segmentation file reading and writing"
 authors = ["Sven Koitka <sven.koitka@uk-essen.de>"]
+homepage = "https://github.com/razorx89/pydicom-seg"
+readme = "README.md"
 license = "MIT"
 exclude = ["pydicom_seg/externals"]
 include = [
