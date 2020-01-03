@@ -33,7 +33,7 @@ class MultiClassWriter:
                  template: pydicom.Dataset,
                  inplane_cropping: bool = True,
                  skip_empty_slices: bool = True,
-                 skip_missing_segment: bool = True):
+                 skip_missing_segment: bool = False):
         """ Constructs a new writer instance.
 
         Writing DICOM-SEGs can be optimized in respect to the required disk
