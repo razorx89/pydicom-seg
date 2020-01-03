@@ -1,7 +1,7 @@
 import abc
 import enum
 import logging
-from typing import Dict
+from typing import Dict, Set
 
 import attr
 import numpy as np
@@ -57,6 +57,10 @@ class _ReadResultBase:
 @attr.s(init=False)
 class SegmentReadResult(_ReadResultBase):
     _segment_data: Dict[int, np.ndarray] = attr.ib()
+
+    @property
+    def available_segments(self) -> Set[int]:
+        return self._segment_data.keys()
 
     def segment_data(self, number: int) -> np.ndarray:
         return self._segment_data[number]
