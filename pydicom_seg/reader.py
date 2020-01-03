@@ -16,18 +16,21 @@ logger = logging.getLogger(__name__)
 
 
 class AlgorithmType(enum.Enum):
+    """Possible values for DICOM tag (0x0062, 0x0008)"""
     AUTOMATIC = 'AUTOMATIC'
     SEMIAUTOMATIC = 'SEMIAUTOMATIC'
     MANUAL = 'MANUAL'
 
 
 class SegmentsOverlap(enum.Enum):
+    """Possible values for DICOM tag (0x0062, 0x0013)"""
     YES = 'YES'
     UNDEFINED = 'UNDEFINED'
     NO = 'NO'
 
 
 class SegmentationType(enum.Enum):
+    """Possible values for DICOM tag (0x0062, 0x0001)"""
     BINARY = 'BINARY'
     FRACTIONAL = 'FRACTIONAL'
 
@@ -35,6 +38,11 @@ class SegmentationType(enum.Enum):
 # TODO Improve attrs/type-hint usage. pylint produces a lot of false-positives
 @attr.s(init=False)
 class _ReadResultBase:
+    """Base data class for read results.
+
+    Contains common information about a decoded segmentation, e.g. origin,
+    voxel spacing and the direction matrix.
+    """
     dataset: pydicom.Dataset = attr.ib()
     direction: np.ndarray = attr.ib()
     origin: tuple = attr.ib()
@@ -56,6 +64,7 @@ class _ReadResultBase:
 
 @attr.s(init=False)
 class SegmentReadResult(_ReadResultBase):
+    """Read result for segment-based decoding of DICOM-SEGs."""
     _segment_data: Dict[int, np.ndarray] = attr.ib()
 
     @property
@@ -74,6 +83,7 @@ class SegmentReadResult(_ReadResultBase):
 
 
 class MultiClassReadResult(_ReadResultBase):
+    """Read result for multi-class decoding of DICOM-SEGs."""
     data: np.ndarray = attr.ib()
 
     @property
@@ -86,13 +96,36 @@ class MultiClassReadResult(_ReadResultBase):
 
 
 class _ReaderBase(abc.ABC):
+    """Base class for reader implementations.
+
+    Reading DICOM-SEGs as different output formats still shares a lot of common
+    information decoding. This baseclass extracts this common knowledge and
+    sets the respective attributes in a `_ReadResultBase` derived result
+    instance.
+    """
+
     @abc.abstractmethod
-    def read(self, dataset: pydicom.Dataset):
-        pass
+    def read(self, dataset: pydicom.Dataset) -> _ReadResultBase:
+        """Read from a DICOM-SEG file.
+
+        Args:
+            dataset: A `pydicom.Dataset` with DICOM-SEG content.
+
+        Returns:
+            Result object with decoded numpy data and common information about
+            the spatial location and extent of the volume.
+        """
 
     def _read_common(self,
                      dataset: pydicom.Dataset,
                      result: _ReadResultBase):
+        """Read common information from a dataset and store it.
+
+        Args:
+            dataset: A `pydicom.Dataset` with DICOM-SEG content.
+            result: A `_ReadResultBase` derived result object, where the common
+                informations are stored.
+        """
         if dataset.SOPClassUID != SegmentationStorage or dataset.Modality != 'SEG':
             raise ValueError('DICOM dataset is not a DICOM-SEG storage')
 
@@ -108,6 +141,24 @@ class _ReaderBase(abc.ABC):
 
 
 class SegmentReader(_ReaderBase):
+    """Reads binary segments from a DICOM-SEG file.
+
+    All segments in a DICOM-SEG file cover the same spatial extent, but might
+    overlap. If a user wants to use each segment individually as a binary
+    segmentation, then this reader extracts all segments as individual numpy
+    arrays. The read operation creates a `SegmentReadResult` object with common
+    information about the spatial location and extent shared by all segments,
+    as well as the binary segmentation data for each segment.
+
+    Usage:
+    ```python
+    dcm = pydicom.dcmread('segmentation.dcm')
+    reader = pydicom_seg.SegmentReader()
+    result = reader.read(dcm)
+    data = result.segment_data(1)  # numpy array
+    image = result.segment_image(1)  # SimpleITK image
+    ```
+    """
     def read(self, dataset: pydicom.Dataset) -> SegmentReadResult:
         result = SegmentReadResult()
         self._read_common(dataset, result)
@@ -151,6 +202,25 @@ class SegmentReader(_ReaderBase):
 
 
 class MultiClassReader(_ReaderBase):
+    """Reads multi-class segmentations from a DICOM-SEG file.
+
+    If all segments in a DICOM-SEG don't overlap, then it is save to reduce `n`
+    binary segmentations to a single segmentation with an integer index for the
+    referenced segment at the spatial location. This is a common use-case,
+    especially in computer vision applications, for analysing different regions
+    in medical imaging. The read operation creates a `MultiClassReadResult`
+    object with information about the spatial location and extent, as well as
+    the multi-class segmentation data.
+
+    Usage:
+    ```python
+    dcm = pydicom.dcmread('segmentation.dcm')
+    reader = pydicom_seg.MultiClassReader()
+    result = reader.read(dcm)
+    data = result.data  # numpy array
+    image = result.image  # SimpleITK image
+    ```
+    """
     def read(self, dataset: pydicom.Dataset) -> MultiClassReadResult:
         result = MultiClassReadResult()
         self._read_common(dataset, result)
