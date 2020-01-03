@@ -7,7 +7,15 @@ import jsonschema
 import pydicom
 
 
-def _create_validator():
+def _create_validator() -> jsonschema.Draft4Validator:
+    """Create a JSON validator instance from dcmqi schema files.
+
+    In order to allow offline usage, the required schemas a pre-loaded from the
+    dcmqi repository located at `pydicom_seg/externals/dcmqi`.
+
+    Returns:
+        A `jsonschema.Draft4Validator` with a pre-loaded schema store.
+    """
     # Load both common and segmentation schema files
     schemas_dir = os.path.join(
         os.path.dirname(__file__),
@@ -37,6 +45,12 @@ def _create_validator():
 
 
 def _create_code_sequence(data: dict) -> pydicom.Sequence:
+    """Helper function for creating a DICOM sequence from JSON attributes.
+
+    Returns:
+        A `pydicom.Sequence` with a single `pydicom.Dataset` item containing
+        all attributes from the JSON document.
+    """
     dataset = pydicom.Dataset()
     for key in data:
         dataset.__setattr__(key, data[key])
@@ -44,6 +58,15 @@ def _create_code_sequence(data: dict) -> pydicom.Sequence:
 
 
 def _create_segment_dataset(data: dict) -> pydicom.Dataset:
+    """Helper function for creating an item for SegmentSequence.
+
+    Args:
+        data: A `dict` with information about a single segment.
+
+    Returns:
+        A `pydicom.Dataset` containing all required and optional information
+        about an annotated segment.
+    """
     dataset = pydicom.Dataset()
 
     # Mandatory fields
@@ -88,6 +111,24 @@ def _create_segment_dataset(data: dict) -> pydicom.Dataset:
 
 
 def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
+    """Converts a `metainfo.json` file from the dcmqi project to a
+    `pydicom.Dataset` with the matching DICOM data elements set from JSON.
+
+    Those JSON files can be easilly created using the segmentation editor
+    tool from QIICR/dcmqi:  
+    http://qiicr.org/dcmqi/#/seg  
+    When converting the JSON to a DICOM dataset, the validity of the provided
+    JSON document is ensured using the official JSON schema files from the
+    dcmqi project.
+
+    Args:
+        metainfo: Either a `str` for a file path to read from or a `dict`
+            with the JSON already imported or constructed in source code.
+
+    Returns:
+        A `pydicom.Dataset` containg all values from the JSON document and
+        some defaults if the elements were not available.
+    """
     # Add convienence loader of JSON dictionary
     if isinstance(metainfo, str):
         with open(metainfo) as ifile:
@@ -128,12 +169,15 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
     return dataset
 
 
-def rgb_to_cielab(rgb: Iterable[int]):
+def rgb_to_cielab(rgb: Iterable[int]) -> Iterable[int]:
     """
     Convert from RGB to CIELab color space.
 
     Arguments:
         rgb: Iterable of length 3 with integer values between 0 and 255
+    
+    Returns:
+        A list with 3 integer scaled values of CIELab.
 
     References:
         - https://github.com/QIICR/dcmqi/blob/0c101b702f12a86cc142cb000a074fbd341f8784/libsrc/Helper.cpp#L173
