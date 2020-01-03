@@ -86,13 +86,27 @@ class MultiClassWriter:
         # Compute unique labels and their respective bounding boxes
         label_statistics_filter = sitk.LabelStatisticsImageFilter()
         label_statistics_filter.Execute(segmentation, segmentation)
-        unique_labels = label_statistics_filter.GetLabels()
-        if len(unique_labels) == 1 and unique_labels[0] == 0:
+        unique_labels = set([x for x in label_statistics_filter.GetLabels() if x != 0])
+        if len(unique_labels) == 0:
             raise ValueError('Segmentation does not contain any labels')
+
+        # Check if all present labels where declared in the DICOM template
+        declared_segments = set([x.SegmentNumber for x in self._template.SegmentSequence])
+        missing_declarations = unique_labels.difference(declared_segments)
+        if missing_declarations:
+            missing_segment_numbers = ', '.join([str(x) for x in missing_declarations])
+            message = (f'Skipping segment(s) {missing_segment_numbers}, since their '
+                       'declaration is missing in the DICOM template')
+            if not self._skip_missing_segment:
+                raise ValueError(message)
+            logger.warning(message)
+        labels_to_process = unique_labels.intersection(declared_segments)
+        if not labels_to_process:
+            raise ValueError('No segments found for encoding as DICOM-SEG')
 
         # Compute bounding boxes for each present label and optionally restrict
         # the volume to serialize to the joined maximum extent
-        bboxs = {x: label_statistics_filter.GetBoundingBox(x) for x in unique_labels if x != 0}
+        bboxs = {x: label_statistics_filter.GetBoundingBox(x) for x in labels_to_process}
         if self._inplane_cropping:
             min_x, min_y, _ = np.min([x[::2] for x in bboxs.values()], axis=0).tolist()
             max_x, max_y, _ = (np.max([x[1::2] for x in bboxs.values()], axis=0) + 1).tolist()
@@ -123,7 +137,7 @@ class MultiClassWriter:
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
-            segments=unique_labels,
+            segments=labels_to_process,
             skip_missing_segment=self._skip_missing_segment
         )
         writer_utils.set_shared_functional_groups_sequence(
@@ -136,11 +150,7 @@ class MultiClassWriter:
         referenced_source_images = []
         buffer = sitk.GetArrayFromImage(segmentation)
         frames = []
-        for segment in [x.SegmentNumber for x in result.SegmentSequence]:
-            if segment == 0:
-                print(f'Skipping segment 0')
-                continue
-
+        for segment in labels_to_process:
             print(f'Processing segment {segment}')
 
             if self._skip_empty_slices:
