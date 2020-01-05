@@ -39,6 +39,9 @@ class DimensionOrganizationSequence(pydicom.Sequence):
                 pydicom.datadict.tag_for_keyword(dimension_index_pointer)
             )
         ds.DimensionIndexPointer = dimension_index_pointer
+        ds.DimensionDescriptionLabel = pydicom.datadict.keyword_for_tag(
+            dimension_index_pointer
+        ) or f'Unknown tag {dimension_index_pointer}'
 
         if functional_group_pointer is not None:
             if isinstance(functional_group_pointer, str):

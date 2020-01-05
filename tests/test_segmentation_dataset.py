@@ -311,6 +311,8 @@ class TestSegmentationDataset:
 
         assert len(self.dataset.DimensionOrganizationSequence) == 1
         assert len(self.dataset.DimensionIndexSequence) == 2
+        assert self.dataset.DimensionIndexSequence[0].DimensionDescriptionLabel == 'ReferencedSegmentNumber'
+        assert self.dataset.DimensionIndexSequence[1].DimensionDescriptionLabel == 'ImagePositionPatient'
 
     def test_add_dimension_organization_duplicate(self):
         seq = DimensionOrganizationSequence()
