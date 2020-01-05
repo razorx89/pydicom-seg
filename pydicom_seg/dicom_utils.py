@@ -4,10 +4,18 @@ import pydicom
 
 
 class CodeSequence(pydicom.Sequence):
+    """Helper class for constructing a DICOM CodeSequence."""
     def __init__(self,
                  value: str,
                  scheme_designator: str,
                  meaning: str):
+        """Creates a code sequence from mandatory arguments.
+
+        Args:
+            value: (0x0008, 0x0100) CodeValue
+            scheme_designator: (0x0008, 0x0102) CodingSchemeDesignator
+            meaning: (0x0008, 0x0104) CodeMeaning
+        """
         super().__init__()
         ds = pydicom.Dataset()
         ds.CodeValue = value

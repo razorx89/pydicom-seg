@@ -23,12 +23,55 @@ class SegmentationType(enum.Enum):
 
 
 class SegmentationDataset(pydicom.Dataset):
+    """Specialized dataset for Segmentation IOD.
+
+    This dataset class initializes most of the mandatory DICOM elements for
+    a valid DICOM-SEG file. Patient and study level elements are not
+    initialized and are expected to be imported from other DICOM datasets.
+    Additionally, it provides utility functions for manipulating various
+    attributes and ensures consistency, for instance when adding frame data.
+
+    If the segmentation type is specified as `BINARY`, added frame data is
+    expected to be of integer data type and will be encoded as one bit per
+    pixel. If the segmentation type is specified as `FRACTIONAL`, then
+    frame data is expected to be of floating point data type and will be
+    clipped to the value range `[0.0, 1.0]`. Afterwards, the data is
+    quantized into 8-bit with `max_fractional_value` being equal to `1.0`.
+
+    Usage:
+    ```python
+    ds = SegmentationDataset(
+        rows=512,
+        columns=512,
+        segmentation_type=SegmentationType.BINARY
+    )
+    # Further configure the dataset, e.g. segment information
+    frame_fg_item = ds.add_frame(
+        data=np.ones((512, 512), dtype=np.uint8),
+        referenced_segment=1,
+    )
+    # Further configure the PerFrameFunctionalGroupSequence item
+    ```
+    """
     def __init__(self, *,
                  rows: int,
                  columns: int,
                  segmentation_type: SegmentationType,
                  segmentation_fractional_type: SegmentationFractionalType = SegmentationFractionalType.PROBABILITY,
                  max_fractional_value: int = 255):
+        """Initializes the segmentation dataset.
+
+        Args:
+            rows: Number of rows in a frame/image (y-axis)
+            columns: Number of columns in a frame/image (x-axis)
+            segmentation_type: Either `SegmentationType.BINARY` or
+                `SegmentationType.FRACTIONAL` depending on the data to encode.
+            segmentation_fractional_type: If `segmentation_type == SegmentationType.FRACTIONAL`,
+                then the fractional type indicates the semantic meaning. Can be
+                either `PROBABILITY` or `OCCUPANCY`.
+            max_fractional_value: Fractional data is expected to be within
+                `[0.0, 1.0]` and will be rescaled to `[0, max_fractional_value]`.
+        """
         super().__init__()
 
         self._frames = []
@@ -111,6 +154,16 @@ class SegmentationDataset(pydicom.Dataset):
         self.fix_meta_info()
 
     def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence):
+        """Adds a dimension organization sequence to the dataset.
+
+        This methods registers the (0x0020, 0x9164) DimensionOrganizationUID
+        and appends all items from the sequence to (0x0020, 0x9222)
+        DimensionIndexSequence.
+
+        Args:
+            dim_organization: A `DimensionOrganizationSequence` with one or
+                more dimension items configured.
+        """
         if 'DimensionOrganizationSequence' not in self:
             self.DimensionOrganizationSequence = pydicom.Sequence()
             self.DimensionIndexSequence = pydicom.Sequence()
@@ -130,6 +183,27 @@ class SegmentationDataset(pydicom.Dataset):
                   referenced_segment: int,
                   referenced_images: List[pydicom.Dataset] = None
                   ) -> pydicom.Dataset:
+        """Adds a frame to the dataset.
+
+        Adds the frame data to the PixelData element after encoding the data
+        into the correct format for the configured segmentation type.
+        Each referenced image is also registered in (0x0008,0x1115)
+        ReferencedSeriesSequence.
+
+        Args:
+            data: A `np.ndarray` with integer data type for binary
+                or floating point data type for fractional segmentations.
+            referenced_segment: An integer number for the segment to which
+                this frame belongs. The segment must exist in (0x0062, 0x0002)
+                SegmentSequence.
+            referenced_images: A list of `pydicom.Dataset` source images, which
+                map to the frame.
+
+        Returns:
+            A `pydicom.Dataset` with pre-initialized values for an item in
+            (0x5200,0x9230) PerFrameFunctionalGroupsSequence, which needs
+            further configuration based on writer dependent strategy.
+        """
         referenced_images = referenced_images or []
 
         if len(data.shape) != 2:
