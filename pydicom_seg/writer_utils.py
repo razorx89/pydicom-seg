@@ -44,29 +44,6 @@ def copy_segmentation_template(target: pydicom.Dataset,
             logger.warning('Skipping label %d, no meta information declared', segment_number)
 
 
-def create_code_sequence(code_value: str,
-                         coding_scheme_designator: str,
-                         code_meaning: str) -> pydicom.Sequence:
-    dataset = pydicom.Dataset()
-    dataset.CodeValue = code_value
-    dataset.CodingSchemeDesignator = coding_scheme_designator
-    dataset.CodeMeaning = code_meaning
-    return pydicom.Sequence([dataset])
-
-
-def create_referenced_source_image_sequence(referenced_images: List[pydicom.Dataset]) -> pydicom.Sequence:
-    result = []
-    for referenced_image in referenced_images:
-        dataset = pydicom.Dataset()
-        dataset.ReferencedSOPClassUID = referenced_image.SOPClassUID
-        dataset.ReferencedSOPInstanceUID = referenced_image.SOPInstanceUID
-        dataset.PurposeOfReferenceCodeSequence = create_code_sequence(
-            '121322', 'DCM', 'Segmentation'
-        )
-        result.append(dataset)
-    return pydicom.Sequence(result)
-
-
 def import_hierarchy(target: pydicom.Dataset,
                      reference: pydicom.Dataset,
                      import_patient: bool = True,
@@ -150,47 +127,6 @@ def import_hierarchy(target: pydicom.Dataset,
             del target[tag_name]
         if tag_name in reference:
             target[tag_name] = reference[tag_name]
-
-
-def set_binary_segmentation(target: pydicom.Dataset):
-    target.BitsAllocated = 1
-    target.BitsStored = 1
-    target.HighBit = 0
-    target.LossyImageCompression = '00'
-    target.PhotometricInterpretation = 'MONOCHROME2'
-    target.PixelRepresentation = 0
-    target.SamplesPerPixel = 1
-    target.SegmentationType = 'BINARY'
-
-
-def set_default_dimension_organization(target: pydicom.Dataset):
-    dim_uid = pydicom.uid.generate_uid()
-    index0 = pydicom.Dataset()
-    index0.DimensionOrganizationUID = dim_uid
-
-    # First index
-    index1 = pydicom.Dataset()
-    index1.DimensionOrganizationUID = dim_uid
-    index1.DimensionIndexPointer = pydicom.tag.Tag(
-        pydicom.datadict.tag_for_keyword('ReferencedSegmentNumber')
-    )
-    index1.FunctionalGroupPointer = pydicom.tag.Tag(
-        pydicom.datadict.tag_for_keyword('SegmentIdentificationSequence')
-    )
-    index1.DimensionDescriptionLabel = 'ReferencedSegmentNumber'
-
-    # Second index
-    index2 = pydicom.Dataset()
-    index2.DimensionOrganizationUID = dim_uid
-    index2.DimensionIndexPointer = pydicom.tag.Tag(
-        pydicom.datadict.tag_for_keyword('ImagePositionPatient')
-    )
-    index2.FunctionalGroupPointer = pydicom.tag.Tag(
-        pydicom.datadict.tag_for_keyword('PlanePositionSequence')
-    )
-    index2.DimensionDescriptionLabel = 'ImagePositionPatient'
-
-    target.DimensionIndexSequence = pydicom.Sequence([index0, index1, index2])
 
 
 def set_shared_functional_groups_sequence(target: pydicom.Dataset, segmentation: sitk.Image):
