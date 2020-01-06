@@ -8,6 +8,11 @@ from pydicom._storage_sopclass_uids import SegmentationStorage
 import SimpleITK as sitk
 
 from pydicom_seg import writer_utils
+from pydicom_seg.dicom_utils import DimensionOrganizationSequence
+from pydicom_seg.segmentation_dataset import (
+    SegmentationType,
+    SegmentationDataset
+)
 
 
 logger = logging.getLogger(__name__)
@@ -118,17 +123,15 @@ class MultiClassWriter:
             print(f'Serializing image planes at full size ({max_x}, {max_y})')
 
         # Create target dataset for storing serialized data
-        result = pydicom.Dataset()
-        result.file_meta = pydicom.Dataset()
-        result.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
-        result.SOPClassUID = SegmentationStorage
-        result.SOPInstanceUID = pydicom.uid.generate_uid()
-        result.is_little_endian = True  # TODO Unecessary with pydicom 1.4
-        result.is_implicit_VR = False  # TODO Unecessary with pydicom 1.4
-        result.fix_meta_info()
-        result.Modality = 'SEG'
-        writer_utils.set_binary_segmentation(result)
-        writer_utils.set_default_dimension_organization(result)
+        result = SegmentationDataset(
+            rows=max_y - min_y,
+            columns=max_x - min_x,
+            segmentation_type=SegmentationType.BINARY
+        )
+        dimension_organization = DimensionOrganizationSequence()
+        dimension_organization.add_dimension('ReferencedSegmentNumber', 'SegmentIdentificationSequence')
+        dimension_organization.add_dimension('ImagePositionPatient', 'PlanePositionSequence')
+        result.add_dimension_organization(dimension_organization)
         writer_utils.import_hierarchy(
             target=result,
             reference=source_images[0],
@@ -144,12 +147,8 @@ class MultiClassWriter:
             target=result,
             segmentation=segmentation
         )
-        result.ReferencedSeriesSequence = []
-        result.PerFrameFunctionalGroupsSequence = []
 
-        referenced_source_images = []
         buffer = sitk.GetArrayFromImage(segmentation)
-        frames = []
         for segment in labels_to_process:
             print(f'Processing segment {segment}')
 
@@ -169,62 +168,30 @@ class MultiClassWriter:
                 if self._skip_empty_slices and not frame_data.any():
                     skipped_slices.append(slice_idx)
                     continue
-                frames.append(frame_data)
 
-                # Build DICOM PerFrameFunctionalGroup item
-                frame_fg = pydicom.Dataset()
-                if slice_to_source_images[slice_idx]:
-                    # Create item for PerFrameFunctionalGroupSequence
-                    dis = pydicom.Dataset()
-                    dis.SourceImageSequence = writer_utils.create_referenced_source_image_sequence(
-                        slice_to_source_images[slice_idx]
-                    )
-                    dis.DerivationCodeSequence = writer_utils.create_code_sequence(
-                        '113076', 'DCM', 'Segmentation'
-                    )
-                    frame_fg.DerivationImageSequence = [dis]
+                frame_fg_item = result.add_frame(
+                    data=frame_data.astype(np.uint8),
+                    referenced_segment=segment,
+                    referenced_images=slice_to_source_images[slice_idx]
+                )
 
-                    # Add source images to reference list
-                    # TODO Improve lookup of already referenced source image
-                    for source_image in slice_to_source_images[slice_idx]:
-                        if source_image not in referenced_source_images:
-                            referenced_source_images.append(source_image)
-
-                frame_fg.FrameContentSequence = [pydicom.Dataset()]
-                frame_fg.FrameContentSequence[0].DimensionIndexValues = [
+                frame_fg_item.FrameContentSequence = [pydicom.Dataset()]
+                frame_fg_item.FrameContentSequence[0].DimensionIndexValues = [
                     segment,  # Segment number
                     slice_idx - min_z + 1  # Slice index within cropped volume
                 ]
-                frame_fg.PlanePositionSequence = [pydicom.Dataset()]
-                frame_fg.PlanePositionSequence[0].ImagePositionPatient = [
+                frame_fg_item.PlanePositionSequence = [pydicom.Dataset()]
+                frame_fg_item.PlanePositionSequence[0].ImagePositionPatient = [
                     f'{x:e}' for x in frame_position
                 ]
-                frame_fg.SegmentIdentificationSequence = [pydicom.Dataset()]
-                frame_fg.SegmentIdentificationSequence[0].ReferencedSegmentNumber = segment
-                result.PerFrameFunctionalGroupsSequence.append(frame_fg)
 
             if skipped_slices:
                 print(f'Skipped empty slices for segment {segment}: ' \
                       f'{", ".join([str(x) for x in skipped_slices])}')
 
-        # Create ReferencedSeriesSequence
-        rss = pydicom.Dataset()
-        rss.SeriesInstanceUID = referenced_source_images[0].SeriesInstanceUID
-        rss.ReferencedInstanceSequence = []
-        for source_image in referenced_source_images:
-            dataset = pydicom.Dataset()
-            dataset.ReferencedSOPClassUID = source_image.SOPClassUID
-            dataset.ReferencedSOPInstanceUID = source_image.SOPInstanceUID
-            rss.ReferencedInstanceSequence.append(dataset)
-        result.ReferencedSeriesSequence.append(rss)
-
-        # TODO Implement incremental bitpacking writer
-        # https://github.com/DCMTK/dcmtk/blob/master/dcmseg/libsrc/segdoc.cc#L1419
-
         # Encode all frames into a bytearray
-        encoded_frames = np.packbits(frames, bitorder='little').tobytes()
-        num_encoded_bytes = len(encoded_frames)
         if self._inplane_cropping or self._skip_empty_slices:
+            num_encoded_bytes = len(result.PixelData)
             max_encoded_bytes = segmentation.GetWidth() * segmentation.GetHeight() * \
                 segmentation.GetDepth() * len(result.SegmentSequence) // 8
             savings = (1 - num_encoded_bytes / max_encoded_bytes) * 100
@@ -233,19 +200,6 @@ class MultiClassWriter:
 
         # TODO Replace with attribute access when pydicom 1.4.0 is released
         result.add_new((0x0062, 0x0013), 'CS', 'NO')  # SegmentsOverlap
-
-        # Set pixel data and information about spatial extents
-        result.Rows = max_y - min_y
-        result.Columns = max_x - min_x
-        result.NumberOfFrames = len(frames)
-        result.PixelData = encoded_frames
-
-        # Set timestamps of creation
-        timestamp_now = datetime.datetime.now()
-        result.SeriesDate = timestamp_now.strftime('%Y%m%d')
-        result.SeriesTime = timestamp_now.strftime('%H%M%S.%f')
-        result.ContentDate = result.SeriesDate
-        result.ContentTime = result.SeriesTime
 
         return result
 
