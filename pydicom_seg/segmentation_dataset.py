@@ -22,6 +22,13 @@ class SegmentationType(enum.Enum):
     FRACTIONAL = 'FRACTIONAL'
 
 
+class SegmentsOverlap(enum.Enum):
+    """Possible values for DICOM tag (0x0062, 0x0013)"""
+    YES = 'YES'
+    UNDEFINED = 'UNDEFINED'
+    NO = 'NO'
+
+
 class SegmentationDataset(pydicom.Dataset):
     """Specialized dataset for Segmentation IOD.
 

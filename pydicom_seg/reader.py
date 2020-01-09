@@ -1,5 +1,4 @@
 import abc
-import enum
 import logging
 from typing import Dict, Set
 
@@ -10,29 +9,13 @@ from pydicom._storage_sopclass_uids import SegmentationStorage
 import SimpleITK as sitk
 
 from pydicom_seg import reader_utils
+from pydicom_seg.segmentation_dataset import (
+    SegmentsOverlap,
+    SegmentationType
+)
 
 
 logger = logging.getLogger(__name__)
-
-
-class AlgorithmType(enum.Enum):
-    """Possible values for DICOM tag (0x0062, 0x0008)"""
-    AUTOMATIC = 'AUTOMATIC'
-    SEMIAUTOMATIC = 'SEMIAUTOMATIC'
-    MANUAL = 'MANUAL'
-
-
-class SegmentsOverlap(enum.Enum):
-    """Possible values for DICOM tag (0x0062, 0x0013)"""
-    YES = 'YES'
-    UNDEFINED = 'UNDEFINED'
-    NO = 'NO'
-
-
-class SegmentationType(enum.Enum):
-    """Possible values for DICOM tag (0x0062, 0x0001)"""
-    BINARY = 'BINARY'
-    FRACTIONAL = 'FRACTIONAL'
 
 
 # TODO Improve attrs/type-hint usage. pylint produces a lot of false-positives
