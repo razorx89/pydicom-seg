@@ -115,12 +115,12 @@ class MultiClassWriter:
         if self._inplane_cropping:
             min_x, min_y, _ = np.min([x[::2] for x in bboxs.values()], axis=0).tolist()
             max_x, max_y, _ = (np.max([x[1::2] for x in bboxs.values()], axis=0) + 1).tolist()
-            print('Serializing cropped image planes starting at coordinates '\
-                  f'({min_x}, {min_y}) with size ({max_x - min_x}, {max_y - min_y})')
+            logger.info('Serializing cropped image planes starting at coordinates '\
+                f'({min_x}, {min_y}) with size ({max_x - min_x}, {max_y - min_y})')
         else:
             min_x, min_y = 0, 0
             max_x, max_y = segmentation.GetWidth(), segmentation.GetHeight()
-            print(f'Serializing image planes at full size ({max_x}, {max_y})')
+            logger.info(f'Serializing image planes at full size ({max_x}, {max_y})')
 
         # Create target dataset for storing serialized data
         result = SegmentationDataset(
@@ -150,14 +150,14 @@ class MultiClassWriter:
 
         buffer = sitk.GetArrayFromImage(segmentation)
         for segment in labels_to_process:
-            print(f'Processing segment {segment}')
+            logger.info(f'Processing segment {segment}')
 
             if self._skip_empty_slices:
                 bbox = bboxs[segment]
                 min_z, max_z = bbox[4], bbox[5] + 1
             else:
                 min_z, max_z = 0, segmentation.GetDepth()
-            print('Total number of slices that will be processed for segment ' \
+            logger.info('Total number of slices that will be processed for segment ' \
                   f'{segment} is {max_z - min_z} (inclusive from {min_z} to {max_z})')
 
             skipped_slices = []
@@ -186,8 +186,8 @@ class MultiClassWriter:
                 ]
 
             if skipped_slices:
-                print(f'Skipped empty slices for segment {segment}: ' \
-                      f'{", ".join([str(x) for x in skipped_slices])}')
+                logger.info(f'Skipped empty slices for segment {segment}: ' \
+                    f'{", ".join([str(x) for x in skipped_slices])}')
 
         # Encode all frames into a bytearray
         if self._inplane_cropping or self._skip_empty_slices:
@@ -195,8 +195,8 @@ class MultiClassWriter:
             max_encoded_bytes = segmentation.GetWidth() * segmentation.GetHeight() * \
                 segmentation.GetDepth() * len(result.SegmentSequence) // 8
             savings = (1 - num_encoded_bytes / max_encoded_bytes) * 100
-            print(f'Optimized frame data length is {num_encoded_bytes:,}B ' \
-                  f'instead of {max_encoded_bytes:,}B (saved {savings:.2f}%)')
+            logger.info(f'Optimized frame data length is {num_encoded_bytes:,}B ' \
+                f'instead of {max_encoded_bytes:,}B (saved {savings:.2f}%)')
 
         # TODO Replace with attribute access when pydicom 1.4.0 is released
         result.add_new((0x0062, 0x0013), 'CS', 'NO')  # SegmentsOverlap
@@ -230,5 +230,6 @@ class MultiClassWriter:
             # TODO Add reverse check if segmentation is contained in image
             result[index[2]].append(source_image)
         slices_mapped = sum(len(x) > 0 for x in result)
-        print(f'{slices_mapped} of {segmentation.GetDepth()} slices mapped to source DICOM images')
+        logger.info(f'{slices_mapped} of {segmentation.GetDepth()} slices'\
+            'mapped to source DICOM images')
         return result
