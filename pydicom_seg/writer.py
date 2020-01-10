@@ -83,6 +83,17 @@ class MultiClassWriter:
             A `pydicom.Dataset` instance with all necessary information and
             meta information for writing the dataset to disk.
         """
+        if segmentation.GetDimension() != 3:
+            raise ValueError('Only 3D segmentation data is supported')
+
+        if segmentation.GetNumberOfComponentsPerPixel() > 1:
+            raise ValueError('Multi-class segmentations can only be '\
+                'represented with a single component per voxel')
+
+        if segmentation.GetPixelID() not in [sitk.sitkUInt8, sitk.sitkUInt16,
+            sitk.sitkUInt32, sitk.sitkUInt64]:
+            raise ValueError('Unsigned integer data type required')
+
         # TODO Add further checks if source images are from the same series
         slice_to_source_images = self._map_source_images_to_segmentation(
             segmentation, source_images
