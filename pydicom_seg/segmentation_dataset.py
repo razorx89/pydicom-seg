@@ -81,7 +81,7 @@ class SegmentationDataset(pydicom.Dataset):
         """
         super().__init__()
 
-        self._frames = []
+        self._frames: List[np.ndarray] = []
 
         self.SpecificCharacterSet = 'ISO_IR 100'
         self.SOPClassUID = SegmentationStorage

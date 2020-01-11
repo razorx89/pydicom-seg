@@ -1,5 +1,5 @@
 import logging
-from typing import Mapping, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import pydicom
@@ -8,8 +8,8 @@ import pydicom
 logger = logging.getLogger(__name__)
 
 
-def get_segment_map(dataset: pydicom.Dataset) -> Mapping[int, pydicom.Dataset]:
-    result = {}
+def get_segment_map(dataset: pydicom.Dataset) -> Dict[int, pydicom.Dataset]:
+    result: Dict[int, pydicom.Dataset] = {}
     last_number = 0
     for segment in dataset.SegmentSequence:
         if segment.SegmentNumber in result:
@@ -67,14 +67,14 @@ def get_image_direction(dataset: pydicom.Dataset) -> np.ndarray:
     return np.stack([x_dir, y_dir, z_dir], axis=1)
 
 
-def get_image_origin_and_extent(dataset: pydicom.Dataset, direction: np.ndarray) -> Tuple[Tuple[float, float, float], float]:
+def get_image_origin_and_extent(dataset: pydicom.Dataset, direction: np.ndarray) -> Tuple[Tuple[float, ...], float]:
     frames = dataset.PerFrameFunctionalGroupsSequence
     slice_dir = direction[:, 2]
     reference_position = np.asarray([float(x) for x in frames[0].PlanePositionSequence[0].ImagePositionPatient])
 
-    min_distance = None
-    origin = None
-    distances = {}
+    min_distance = 0.0
+    origin: Tuple[float, ...] = (0.0, 0.0, 0.0)
+    distances: Dict[Tuple, float] = {}
     for frame_idx, frame in enumerate(frames):
         frame_position = tuple(float(x) for x in frame.PlanePositionSequence[0].ImagePositionPatient)
         if frame_position in distances:
@@ -89,9 +89,9 @@ def get_image_origin_and_extent(dataset: pydicom.Dataset, direction: np.ndarray)
 
     # Sort all distances ascending and compute extent from minimum and
     # maximum distance to reference plane
-    distances = sorted(distances.values())
+    distance_values = sorted(distances.values())
     extent = 0.0
-    if len(distances) > 1:
-        extent = abs(distances[0] - distances[-1])
+    if len(distance_values) > 1:
+        extent = abs(distance_values[0] - distance_values[-1])
 
     return origin, extent

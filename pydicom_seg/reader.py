@@ -52,7 +52,7 @@ class SegmentReadResult(_ReadResultBase):
 
     @property
     def available_segments(self) -> Set[int]:
-        return self._segment_data.keys()
+        return set(self._segment_data.keys())
 
     def segment_data(self, number: int) -> np.ndarray:
         return self._segment_data[number]

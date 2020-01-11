@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Set
 
 import numpy as np
 import pydicom
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def copy_segmentation_template(target: pydicom.Dataset,
                                template: pydicom.Dataset,
-                               segments: List[int],
+                               segments: Set[int],
                                skip_missing_segment: bool):
     # Copy mandatory fields
     target.ClinicalTrialSeriesID = template.ClinicalTrialSeriesID

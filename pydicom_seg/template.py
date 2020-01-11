@@ -1,4 +1,4 @@
-from typing import Iterable, Union
+from typing import List, Union
 
 import json
 import os
@@ -169,7 +169,7 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
     return dataset
 
 
-def rgb_to_cielab(rgb: Iterable[int]) -> Iterable[int]:
+def rgb_to_cielab(rgb: List[int]) -> List[int]:
     """
     Convert from RGB to CIELab color space.
 

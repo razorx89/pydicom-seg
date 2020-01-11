@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Iterable, List
+from typing import List
 
 import numpy as np
 import pydicom
@@ -69,14 +69,14 @@ class MultiClassWriter:
 
     def write(self,
               segmentation: sitk.Image,
-              source_images: Iterable[pydicom.Dataset]) -> pydicom.Dataset:
+              source_images: List[pydicom.Dataset]) -> pydicom.Dataset:
         """Writes a DICOM-SEG dataset from a segmentation image and the
         corresponding DICOM source images.
 
         Args:
             segmentation: A `SimpleITK.Image` with integer labels and a single
                 component per spatial location.
-            source_images: An iterable of `pydicom.Dataset` which are the
+            source_images: A list of `pydicom.Dataset` which are the
                 source images for the segmentation image.
         
         Returns:
@@ -216,15 +216,15 @@ class MultiClassWriter:
 
     def _map_source_images_to_segmentation(self,
                                            segmentation: sitk.Image,
-                                           source_images: Iterable[pydicom.Dataset]
+                                           source_images: List[pydicom.Dataset]
                                            ) -> List[List[pydicom.Dataset]]:
-        """Maps an iterable of source image datasets to the slices of a
+        """Maps an list of source image datasets to the slices of a
         SimpleITK image.
 
         Args:
             segmentation: A `SimpleITK.Image` with integer labels and a single
                 component per spatial location.
-            source_images: An iterable of `pydicom.Dataset` which are the
+            source_images: A list of `pydicom.Dataset` which are the
                 source images for the segmentation image.
         
         Returns:
@@ -232,7 +232,8 @@ class MultiClassWriter:
             `pydicom.Dataset` instances for that slice location. Slices can
             have zero or more matched datasets.
         """
-        result = [list() for _ in range(segmentation.GetDepth())]
+        result: List[List[pydicom.Dataset]] = \
+            [list() for _ in range(segmentation.GetDepth())]
         for source_image in source_images:
             position = [float(x) for x in source_image.ImagePositionPatient]
             index = segmentation.TransformPhysicalPointToIndex(position)
