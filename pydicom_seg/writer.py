@@ -143,11 +143,15 @@ class MultiClassWriter:
         dimension_organization.add_dimension('ReferencedSegmentNumber', 'SegmentIdentificationSequence')
         dimension_organization.add_dimension('ImagePositionPatient', 'PlanePositionSequence')
         result.add_dimension_organization(dimension_organization)
-        writer_utils.import_hierarchy(
-            target=result,
-            reference=source_images[0],
-            import_series=False
-        )
+        if source_images:
+            writer_utils.import_hierarchy(
+                target=result,
+                reference=source_images[0],
+                import_series=False
+            )
+        else:
+            logger.warning('No source images provided, cannot import patient '\
+                'and study level information.')
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
