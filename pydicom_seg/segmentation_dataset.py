@@ -156,8 +156,6 @@ class SegmentationDataset(pydicom.Dataset):
     def _set_file_meta(self):
         self.file_meta = pydicom.Dataset()
         self.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
-        self.is_little_endian = True  # TODO Remove with pydicom 1.4
-        self.is_implicit_VR = False  # TODO Remove with pydicom 1.4
         self.fix_meta_info()
 
     def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence):

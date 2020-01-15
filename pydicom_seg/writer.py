@@ -213,8 +213,7 @@ class MultiClassWriter:
             logger.info(f'Optimized frame data length is {num_encoded_bytes:,}B ' \
                 f'instead of {max_encoded_bytes:,}B (saved {savings:.2f}%)')
 
-        # TODO Replace with attribute access when pydicom 1.4.0 is released
-        result.add_new((0x0062, 0x0013), 'CS', 'NO')  # SegmentsOverlap
+        result.SegmentsOverlap = 'NO'
 
         return result
 
