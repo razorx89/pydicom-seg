@@ -252,14 +252,6 @@ class MultiClassReader(_ReaderBase):
         if dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
             frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
         
-                   
-            
-            # Iterate over all frames and check for referenced segment number
-            for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-                sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
-                if segment_number != sis[0].ReferencedSegmentNumber:
-                        continue
-        
         # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
         shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
         
