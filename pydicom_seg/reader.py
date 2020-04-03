@@ -165,14 +165,13 @@ class SegmentReader(_ReaderBase):
             dummy.SetSpacing(result.spacing)
             dummy.SetDirection(result.direction.ravel())
 
+            # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
+            shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
+            
             # Iterate over all frames and check for referenced segment number
             for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-                if hasattr(pffg, 'SegmentIdentificationSequence'):
-                    sis = pffg.SegmentIdentificationSequence[0]
-                elif hasattr(dataset.SharedFunctionalGroupsSequence[0], 'SegmentIdentificationSequence'):
-                    sis = dataset.SharedFunctionalGroupsSequence[0].SegmentIdentificationSequence[0]
-
-                if segment_number != sis.ReferencedSegmentNumber:
+                sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+                if segment_number != sis[0].ReferencedSegmentNumber:
                         continue
                         
                 frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
@@ -252,10 +251,22 @@ class MultiClassReader(_ReaderBase):
         frame_pixel_array = dataset.pixel_array
         if dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
             frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
-
+        
+                   
+            
+            # Iterate over all frames and check for referenced segment number
+            for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
+                sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+                if segment_number != sis[0].ReferencedSegmentNumber:
+                        continue
+        
+        # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
+        shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
+        
         # Iterate over all frames and update buffer with segment mask
         for frame_id, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-            referenced_segment_number = pffg.SegmentIdentificationSequence[0].ReferencedSegmentNumber
+            sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+            referenced_segment_number = sis[0].ReferencedSegmentNumber
             frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
             frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
             binary_mask = np.greater(frame_pixel_array[frame_id], 0)
