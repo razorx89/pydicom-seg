@@ -169,8 +169,8 @@ class SegmentReader(_ReaderBase):
             for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
                 if hasattr(pffg, 'SegmentIdentificationSequence'):
                     sis = pffg.SegmentIdentificationSequence[0]
-                elif hasattr(dcm.SharedFunctionalGroupsSequence[0], 'SegmentIdentificationSequence'):
-                    sis = dcm.SharedFunctionalGroupsSequence[0].SegmentIdentificationSequence[0]
+                elif hasattr(dataset.SharedFunctionalGroupsSequence[0], 'SegmentIdentificationSequence'):
+                    sis = dataset.SharedFunctionalGroupsSequence[0].SegmentIdentificationSequence[0]
 
                 if segment_number != sis.ReferencedSegmentNumber:
                         continue
