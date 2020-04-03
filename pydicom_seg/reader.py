@@ -167,8 +167,14 @@ class SegmentReader(_ReaderBase):
 
             # Iterate over all frames and check for referenced segment number
             for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-                if segment_number != pffg.SegmentIdentificationSequence[0].ReferencedSegmentNumber:
-                    continue
+                if hasattr(pffg, 'SegmentIdentificationSequence'):
+                    sis = pffg.SegmentIdentificationSequence[0]
+                elif hasattr(dcm.SharedFunctionalGroupsSequence[0], 'SegmentIdentificationSequence'):
+                    sis = dcm.SharedFunctionalGroupsSequence[0].SegmentIdentificationSequence[0]
+
+                if segment_number != sis.ReferencedSegmentNumber:
+                        continue
+                        
                 frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
                 frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
                 slice_data = frame_pixel_array[frame_idx]
