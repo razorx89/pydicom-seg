@@ -35,7 +35,8 @@ class _ReadResultBase:
 
     @property
     def referenced_series_uid(self) -> str:
-        return self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+        uid: str = self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+        return uid
 
     @property
     def referenced_instance_uids(self) -> List[str]:
