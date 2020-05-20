@@ -14,7 +14,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.5"
+python = "^3.6"
 pydicom = "^1.4.0"
 SimpleITK = "^1.2.4"
 numpy = "^1.18.0"
