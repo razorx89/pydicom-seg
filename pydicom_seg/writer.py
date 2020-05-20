@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Iterable, List
+from typing import List
 
 import numpy as np
 import pydicom
@@ -67,20 +67,31 @@ class MultiClassWriter:
 
     def write(self,
               segmentation: sitk.Image,
-              source_images: Iterable[pydicom.Dataset]) -> pydicom.Dataset:
+              source_images: List[pydicom.Dataset]) -> pydicom.Dataset:
         """Writes a DICOM-SEG dataset from a segmentation image and the
         corresponding DICOM source images.
 
         Args:
             segmentation: A `SimpleITK.Image` with integer labels and a single
                 component per spatial location.
-            source_images: An iterable of `pydicom.Dataset` which are the
+            source_images: A list of `pydicom.Dataset` which are the
                 source images for the segmentation image.
         
         Returns:
             A `pydicom.Dataset` instance with all necessary information and
             meta information for writing the dataset to disk.
         """
+        if segmentation.GetDimension() != 3:
+            raise ValueError('Only 3D segmentation data is supported')
+
+        if segmentation.GetNumberOfComponentsPerPixel() > 1:
+            raise ValueError('Multi-class segmentations can only be '\
+                'represented with a single component per voxel')
+
+        if segmentation.GetPixelID() not in [sitk.sitkUInt8, sitk.sitkUInt16,
+            sitk.sitkUInt32, sitk.sitkUInt64]:
+            raise ValueError('Unsigned integer data type required')
+
         # TODO Add further checks if source images are from the same series
         slice_to_source_images = self._map_source_images_to_segmentation(
             segmentation, source_images
@@ -130,11 +141,15 @@ class MultiClassWriter:
         dimension_organization.add_dimension('ReferencedSegmentNumber', 'SegmentIdentificationSequence')
         dimension_organization.add_dimension('ImagePositionPatient', 'PlanePositionSequence')
         result.add_dimension_organization(dimension_organization)
-        writer_utils.import_hierarchy(
-            target=result,
-            reference=source_images[0],
-            import_series=False
-        )
+        if source_images:
+            writer_utils.import_hierarchy(
+                target=result,
+                reference=source_images[0],
+                import_series=False
+            )
+        else:
+            logger.warning('No source images provided, cannot import patient '\
+                'and study level information.')
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
@@ -196,22 +211,21 @@ class MultiClassWriter:
             logger.info(f'Optimized frame data length is {num_encoded_bytes:,}B ' \
                 f'instead of {max_encoded_bytes:,}B (saved {savings:.2f}%)')
 
-        # TODO Replace with attribute access when pydicom 1.4.0 is released
-        result.add_new((0x0062, 0x0013), 'CS', 'NO')  # SegmentsOverlap
+        result.SegmentsOverlap = 'NO'
 
         return result
 
     def _map_source_images_to_segmentation(self,
                                            segmentation: sitk.Image,
-                                           source_images: Iterable[pydicom.Dataset]
+                                           source_images: List[pydicom.Dataset]
                                            ) -> List[List[pydicom.Dataset]]:
-        """Maps an iterable of source image datasets to the slices of a
+        """Maps an list of source image datasets to the slices of a
         SimpleITK image.
 
         Args:
             segmentation: A `SimpleITK.Image` with integer labels and a single
                 component per spatial location.
-            source_images: An iterable of `pydicom.Dataset` which are the
+            source_images: A list of `pydicom.Dataset` which are the
                 source images for the segmentation image.
         
         Returns:
@@ -219,7 +233,8 @@ class MultiClassWriter:
             `pydicom.Dataset` instances for that slice location. Slices can
             have zero or more matched datasets.
         """
-        result = [list() for _ in range(segmentation.GetDepth())]
+        result: List[List[pydicom.Dataset]] = \
+            [list() for _ in range(segmentation.GetDepth())]
         for source_image in source_images:
             position = [float(x) for x in source_image.ImagePositionPatient]
             index = segmentation.TransformPhysicalPointToIndex(position)

@@ -32,7 +32,7 @@ pip install pydicom-seg
 
 ### Install from source
 
-This package uses [Poetry](https://python-poetry.org/) as build system.
+This package uses [Poetry](https://python-poetry.org/) (version >= 1.0.5) as build system.
 
 ```bash
 git clone https://github.com/razorx89/pydicom-seg.git

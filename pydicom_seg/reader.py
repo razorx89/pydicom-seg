@@ -1,6 +1,6 @@
 import abc
 import logging
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 import attr
 import numpy as np
@@ -34,11 +34,12 @@ class _ReadResultBase:
     spacing: tuple = attr.ib()
 
     @property
-    def referenced_series_uid(self):
-        return self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+    def referenced_series_uid(self) -> str:
+        uid: str = self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+        return uid
 
     @property
-    def referenced_instance_uids(self):
+    def referenced_instance_uids(self) -> List[str]:
         return [
             x.ReferencedSOPInstanceUID
             for x in self.dataset.ReferencedSeriesSequence[0].ReferencedInstanceSequence
@@ -52,7 +53,7 @@ class SegmentReadResult(_ReadResultBase):
 
     @property
     def available_segments(self) -> Set[int]:
-        return self._segment_data.keys()
+        return set(self._segment_data.keys())
 
     def segment_data(self, number: int) -> np.ndarray:
         return self._segment_data[number]
@@ -101,7 +102,7 @@ class _ReaderBase(abc.ABC):
 
     def _read_common(self,
                      dataset: pydicom.Dataset,
-                     result: _ReadResultBase):
+                     result: _ReadResultBase) -> None:
         """Read common information from a dataset and store it.
 
         Args:
@@ -119,8 +120,6 @@ class _ReaderBase(abc.ABC):
         result.direction.flags.writeable = False
         result.origin, extent = reader_utils.get_image_origin_and_extent(dataset, result.direction)
         result.size = (dataset.Columns, dataset.Rows, int(np.ceil(extent / result.spacing[-1]) + 1))
-
-        return result
 
 
 class SegmentReader(_ReaderBase):
@@ -165,10 +164,15 @@ class SegmentReader(_ReaderBase):
             dummy.SetSpacing(result.spacing)
             dummy.SetDirection(result.direction.ravel())
 
+            # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
+            shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
+            
             # Iterate over all frames and check for referenced segment number
             for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-                if segment_number != pffg.SegmentIdentificationSequence[0].ReferencedSegmentNumber:
-                    continue
+                sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+                if segment_number != sis[0].ReferencedSegmentNumber:
+                        continue
+                        
                 frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
                 frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
                 slice_data = frame_pixel_array[frame_idx]
@@ -214,13 +218,12 @@ class MultiClassReader(_ReaderBase):
             raise ValueError('Invalid segmentation type, only BINARY is supported for decoding multi-class segmentations.')
 
         # Multi-class decoding requires non-overlapping segmentations
-        # TODO Replace with attribute access when pydicom 1.4.0 is released
-        segments_overlap = dataset.get(pydicom.tag.Tag(0x0062, 0x0013))  # SegmentsOverlap
+        segments_overlap = dataset.get('SegmentsOverlap')
         if segments_overlap is None:
             segments_overlap = SegmentsOverlap.UNDEFINED
             logger.warning('DICOM-SEG does not specify "(0062, 0013) SegmentsOverlap", assuming UNDEFINED and checking pixels')
         else:
-            segments_overlap = SegmentsOverlap(segments_overlap.value)
+            segments_overlap = SegmentsOverlap(segments_overlap)
 
         if segments_overlap == SegmentsOverlap.YES:
             raise ValueError('Segmentation contains overlapping segments, cannot read as multi-class.')
@@ -247,10 +250,14 @@ class MultiClassReader(_ReaderBase):
         frame_pixel_array = dataset.pixel_array
         if dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
             frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
-
+        
+        # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
+        shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
+        
         # Iterate over all frames and update buffer with segment mask
         for frame_id, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-            referenced_segment_number = pffg.SegmentIdentificationSequence[0].ReferencedSegmentNumber
+            sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+            referenced_segment_number = sis[0].ReferencedSegmentNumber
             frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
             frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
             binary_mask = np.greater(frame_pixel_array[frame_id], 0)

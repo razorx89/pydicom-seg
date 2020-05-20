@@ -1,4 +1,4 @@
-from typing import Iterable, Union
+from typing import List, Union
 
 import json
 import os
@@ -156,11 +156,7 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
     ]
 
     for tag_name, default_value in tags_with_defaults:
-        if default_value is None:
-            if tag_name in metainfo:
-                dataset.__setattr__(tag_name, metainfo[tag_name])
-        else:
-            dataset.__setattr__(tag_name, metainfo.get(tag_name, default_value))
+        dataset.__setattr__(tag_name, metainfo.get(tag_name, default_value))
 
     dataset.SegmentSequence = pydicom.Sequence([
         _create_segment_dataset(x[0]) for x in metainfo['segmentAttributes']
@@ -169,7 +165,7 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
     return dataset
 
 
-def rgb_to_cielab(rgb: Iterable[int]) -> Iterable[int]:
+def rgb_to_cielab(rgb: List[int]) -> List[int]:
     """
     Convert from RGB to CIELab color space.
 
