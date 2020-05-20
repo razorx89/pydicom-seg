@@ -162,8 +162,11 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
         else:
             dataset.__setattr__(tag_name, metainfo.get(tag_name, default_value))
 
+    if len(metainfo['segmentAttributes']) > 1:
+        raise ValueError('Only metainfo.json files written for single-file input are supported')
+
     dataset.SegmentSequence = pydicom.Sequence([
-        _create_segment_dataset(x[0]) for x in metainfo['segmentAttributes']
+        _create_segment_dataset(x) for x in metainfo['segmentAttributes'][0]
     ])
 
     return dataset
