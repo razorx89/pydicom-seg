@@ -1,0 +1,43 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/**'
+      - 'pydicom_seg/**'
+
+jobs:
+  gh-pages:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2.1.1
+      with:
+        submodules: 'true'
+                
+    - name: Install Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+
+    - name: Install dependencies
+      run: |
+        python -m pip install -U pip
+        python -m pip install poetry
+        poetry install
+
+    - name: Build documentation
+      run: |
+        poetry run make -C docs html
+        echo "include: [_static, _images, _source]" > docs/_build/html/_config.yml
+
+    - name: Publish generated content to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        ACCESS_TOKEN: ${{ secrets.GHP_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/_build/html
+        CLEAN: true
+        SINGLE_COMMIT: true
