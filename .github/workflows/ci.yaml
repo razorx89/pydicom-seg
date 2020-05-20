@@ -16,7 +16,9 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.1.1
+      with:
+        submodules: 'true'
 
     - name: Install Python
       uses: actions/setup-python@v2
