@@ -1,17 +1,6 @@
 Welcome to pydicom-seg's documentation!
 =======================================
 
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-    :caption: Contents
-
-    install.rst
-    guides/index.rst
-    api.rst
-    license.rst
-    citation.rst
-
 Converting DICOM-SEG files into ITK compatible data formats, commonly used for
 research, is made possible by the `dcmqi <https://github.com/QIICR/dcmqi>`_
 project for some time. However, the project is written in C++ and offers only
@@ -24,3 +13,13 @@ This library aims to make this process much easier, by providing a Python
 native implementation of reading and writing functionality with support for
 `numpy` and `SimpleITK`. Additionally, common use cases like loading
 multi-class segmentations are supported out-of-the-box.
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Contents
+
+    install.rst
+    guides/index.rst
+    api.rst
+    license.rst
+    citation.rst
