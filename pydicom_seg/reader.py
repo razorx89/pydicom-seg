@@ -1,6 +1,6 @@
 import abc
 import logging
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 import attr
 import numpy as np
@@ -34,11 +34,12 @@ class _ReadResultBase:
     spacing: tuple = attr.ib()
 
     @property
-    def referenced_series_uid(self):
-        return self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+    def referenced_series_uid(self) -> str:
+        uid: str = self.dataset.ReferencedSeriesSequence[0].SeriesInstanceUID
+        return uid
 
     @property
-    def referenced_instance_uids(self):
+    def referenced_instance_uids(self) -> List[str]:
         return [
             x.ReferencedSOPInstanceUID
             for x in self.dataset.ReferencedSeriesSequence[0].ReferencedInstanceSequence
@@ -101,7 +102,7 @@ class _ReaderBase(abc.ABC):
 
     def _read_common(self,
                      dataset: pydicom.Dataset,
-                     result: _ReadResultBase):
+                     result: _ReadResultBase) -> None:
         """Read common information from a dataset and store it.
 
         Args:
@@ -119,8 +120,6 @@ class _ReaderBase(abc.ABC):
         result.direction.flags.writeable = False
         result.origin, extent = reader_utils.get_image_origin_and_extent(dataset, result.direction)
         result.size = (dataset.Columns, dataset.Rows, int(np.ceil(extent / result.spacing[-1]) + 1))
-
-        return result
 
 
 class SegmentReader(_ReaderBase):
