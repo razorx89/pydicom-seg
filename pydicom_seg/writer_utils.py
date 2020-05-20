@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def copy_segmentation_template(target: pydicom.Dataset,
                                template: pydicom.Dataset,
                                segments: Set[int],
-                               skip_missing_segment: bool):
+                               skip_missing_segment: bool) -> None:
     # Copy mandatory fields
     target.ClinicalTrialSeriesID = template.ClinicalTrialSeriesID
     target.ClinicalTrialTimePointID = template.ClinicalTrialTimePointID
@@ -50,7 +50,7 @@ def import_hierarchy(target: pydicom.Dataset,
                      import_study: bool = True,
                      import_frame_of_reference: bool = False,
                      import_series: bool = False,
-                     import_charset: bool = True):
+                     import_charset: bool = True) -> None:
     """
     Import data elements from a reference DICOM file according to DCMTK
     implementation of DcmIODCommon::importHierarchy.
@@ -129,7 +129,7 @@ def import_hierarchy(target: pydicom.Dataset,
             target[tag_name] = reference[tag_name]
 
 
-def set_shared_functional_groups_sequence(target: pydicom.Dataset, segmentation: sitk.Image):
+def set_shared_functional_groups_sequence(target: pydicom.Dataset, segmentation: sitk.Image) -> None:
     spacing = segmentation.GetSpacing()
 
     dataset = pydicom.Dataset()

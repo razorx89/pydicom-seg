@@ -153,12 +153,12 @@ class SegmentationDataset(pydicom.Dataset):
         self.PerFrameFunctionalGroupsSequence = pydicom.Sequence()
         self.NumberOfFrames = 0
 
-    def _set_file_meta(self):
+    def _set_file_meta(self) -> None:
         self.file_meta = pydicom.Dataset()
         self.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
         self.fix_meta_info()
 
-    def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence):
+    def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence) -> None:
         """Adds a dimension organization sequence to the dataset.
 
         This methods registers the (0x0020, 0x9164) DimensionOrganizationUID

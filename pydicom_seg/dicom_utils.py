@@ -27,7 +27,7 @@ class CodeSequence(pydicom.Sequence):
 class DimensionOrganizationSequence(pydicom.Sequence):
     def add_dimension(self,
                       dimension_index_pointer: Union[str, pydicom.tag.Tag],
-                      functional_group_pointer: Optional[Union[str, pydicom.tag.Tag]] = None):
+                      functional_group_pointer: Optional[Union[str, pydicom.tag.Tag]] = None) -> None:
         ds = pydicom.Dataset()
         if len(self) > 0:
             ds.DimensionOrganizationUID = self[0].DimensionOrganizationUID
