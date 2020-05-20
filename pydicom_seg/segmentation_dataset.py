@@ -45,20 +45,31 @@ class SegmentationDataset(pydicom.Dataset):
     clipped to the value range `[0.0, 1.0]`. Afterwards, the data is
     quantized into 8-bit with `max_fractional_value` being equal to `1.0`.
 
-    Usage:
-    ```python
-    ds = SegmentationDataset(
-        rows=512,
-        columns=512,
-        segmentation_type=SegmentationType.BINARY
-    )
-    # Further configure the dataset, e.g. segment information
-    frame_fg_item = ds.add_frame(
-        data=np.ones((512, 512), dtype=np.uint8),
-        referenced_segment=1,
-    )
-    # Further configure the PerFrameFunctionalGroupSequence item
-    ```
+    Example:
+        ::
+
+            ds = SegmentationDataset(
+                rows=512,
+                columns=512,
+                segmentation_type=SegmentationType.BINARY
+            )
+            # Further configure the dataset, e.g. segment information
+            frame_fg_item = ds.add_frame(
+                data=np.ones((512, 512), dtype=np.uint8),
+                referenced_segment=1,
+            )
+            # Further configure the PerFrameFunctionalGroupSequence item
+
+    Args:
+        rows: Number of rows in a frame/image (y-axis)
+        columns: Number of columns in a frame/image (x-axis)
+        segmentation_type: Either `SegmentationType.BINARY` or
+            `SegmentationType.FRACTIONAL` depending on the data to encode.
+        segmentation_fractional_type: If `segmentation_type == SegmentationType.FRACTIONAL`,
+            then the fractional type indicates the semantic meaning. Can be
+            either `PROBABILITY` or `OCCUPANCY`.
+        max_fractional_value: Fractional data is expected to be within
+            `[0.0, 1.0]` and will be rescaled to `[0, max_fractional_value]`.
     """
     def __init__(self, *,
                  rows: int,
@@ -66,19 +77,6 @@ class SegmentationDataset(pydicom.Dataset):
                  segmentation_type: SegmentationType,
                  segmentation_fractional_type: SegmentationFractionalType = SegmentationFractionalType.PROBABILITY,
                  max_fractional_value: int = 255):
-        """Initializes the segmentation dataset.
-
-        Args:
-            rows: Number of rows in a frame/image (y-axis)
-            columns: Number of columns in a frame/image (x-axis)
-            segmentation_type: Either `SegmentationType.BINARY` or
-                `SegmentationType.FRACTIONAL` depending on the data to encode.
-            segmentation_fractional_type: If `segmentation_type == SegmentationType.FRACTIONAL`,
-                then the fractional type indicates the semantic meaning. Can be
-                either `PROBABILITY` or `OCCUPANCY`.
-            max_fractional_value: Fractional data is expected to be within
-                `[0.0, 1.0]` and will be rescaled to `[0, max_fractional_value]`.
-        """
         super().__init__()
 
         self._frames: List[np.ndarray] = []

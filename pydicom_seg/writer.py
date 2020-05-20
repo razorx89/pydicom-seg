@@ -22,16 +22,37 @@ logger = logging.getLogger(__name__)
 class MultiClassWriter:
     """Writer for DICOM-SEG files from multi-class segmentations.
 
-    Usage:
-    ```python
-    segmentation = ...  # A multi-class segmentation as SimpleITK image
-    series_dcms = ...  # List of `pydicom.Dataset`s related to the segmentation
+    Writing DICOM-SEGs can be optimized in respect to the required disk
+    space. Empty slices/frames of a 3D volume, containing only zeros, can
+    be omitted from the frame sequence. Furthermore, the segmentation might
+    only span a small area in a slice and thus can be cropped to the
+    minimal enclosing bounding box.
 
-    template = pydicom_seg.template.from_dcmqi_metainfo('metainfo.json')
-    writer = MultiClassWriter(template)
-    dcm = writer.write(segmentation, series_dcms)
-    dcm.save_as('<path>')
-    ```
+    Example:
+        ::
+
+            segmentation = ...  # A multi-class segmentation as SimpleITK image
+            series_dcms = ...  # List of `pydicom.Dataset`s related to the segmentation
+
+            template = pydicom_seg.template.from_dcmqi_metainfo('metainfo.json')
+            writer = MultiClassWriter(template)
+            dcm = writer.write(segmentation, series_dcms)
+            dcm.save_as('<path>')
+
+    Args:
+        template: A `pydicom.Dataset` holding all relevant meta information
+            about the DICOM-SEG series. It has the same meaning as the
+            `metainfo.json` file for the dcmqi binaries.
+        inplane_cropping: If enabled, slices will be cropped (Rows/Columns)
+            to the minimum enclosing boundingbox of all labels across all
+            slices.
+        skip_empty_slices: If enabled, empty slices with only zeros 
+            (background label) will be ommited from the DICOM-SEG.
+        skip_missing_segment: If enabled, just emit a warning if segment
+            information is missing in the template for a specific label.
+            The segment won't be included in the final DICOM-SEG. 
+            Otherwise, the encoding is aborted if segment information is
+            missing.
     """
 
     def __init__(self,
@@ -39,29 +60,6 @@ class MultiClassWriter:
                  inplane_cropping: bool = True,
                  skip_empty_slices: bool = True,
                  skip_missing_segment: bool = False):
-        """ Constructs a new writer instance.
-
-        Writing DICOM-SEGs can be optimized in respect to the required disk
-        space. Empty slices/frames of a 3D volume, containing only zeros, can
-        be omitted from the frame sequence. Furthermore, the segmentation might
-        only span a small area in a slice and thus can be cropped to the
-        minimal enclosing bounding box.
-
-        Args:
-            template: A `pydicom.Dataset` holding all relevant meta information
-                about the DICOM-SEG series. It has the same meaning as the
-                `metainfo.json` file for the dcmqi binaries.
-            inplane_cropping: If enabled, slices will be cropped (Rows/Columns)
-                to the minimum enclosing boundingbox of all labels across all
-                slices.
-            skip_empty_slices: If enabled, empty slices with only zeros 
-                (background label) will be ommited from the DICOM-SEG.
-            skip_missing_segment: If enabled, just emit a warning if segment
-                information is missing in the template for a specific label.
-                The segment won't be included in the final DICOM-SEG. 
-                Otherwise, the encoding is aborted if segment information is
-                missing.
-        """
         self._inplane_cropping = inplane_cropping
         self._skip_empty_slices = skip_empty_slices
         self._skip_missing_segment = skip_missing_segment
