@@ -9,6 +9,7 @@ Welcome to pydicom-seg's documentation!
     motivation.rst
     install.rst
     guides/index.rst
+    api.rst
     license.rst
     citation.rst
 

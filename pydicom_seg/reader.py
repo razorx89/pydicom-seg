@@ -133,14 +133,14 @@ class SegmentReader(_ReaderBase):
     information about the spatial location and extent shared by all segments,
     as well as the binary segmentation data for each segment.
 
-    Usage:
-    ```python
-    dcm = pydicom.dcmread('segmentation.dcm')
-    reader = pydicom_seg.SegmentReader()
-    result = reader.read(dcm)
-    data = result.segment_data(1)  # numpy array
-    image = result.segment_image(1)  # SimpleITK image
-    ```
+    Example:
+        ::
+
+            dcm = pydicom.dcmread('segmentation.dcm')
+            reader = pydicom_seg.SegmentReader()
+            result = reader.read(dcm)
+            data = result.segment_data(1)  # numpy array
+            image = result.segment_image(1)  # SimpleITK image
     """
     def read(self, dataset: pydicom.Dataset) -> SegmentReadResult:
         result = SegmentReadResult()
@@ -195,14 +195,14 @@ class MultiClassReader(_ReaderBase):
     object with information about the spatial location and extent, as well as
     the multi-class segmentation data.
 
-    Usage:
-    ```python
-    dcm = pydicom.dcmread('segmentation.dcm')
-    reader = pydicom_seg.MultiClassReader()
-    result = reader.read(dcm)
-    data = result.data  # numpy array
-    image = result.image  # SimpleITK image
-    ```
+    Example:
+        ::
+
+            dcm = pydicom.dcmread('segmentation.dcm')
+            reader = pydicom_seg.MultiClassReader()
+            result = reader.read(dcm)
+            data = result.data  # numpy array
+            image = result.image  # SimpleITK image
     """
     def read(self, dataset: pydicom.Dataset) -> MultiClassReadResult:
         result = MultiClassReadResult()
