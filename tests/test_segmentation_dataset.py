@@ -278,15 +278,15 @@ class TestSegmentationDataset:
         self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1)
         assert len(self.dataset.PerFrameFunctionalGroupsSequence) == 1
 
-    def test_adding_frame_with_reference_adds_source_image_sequence_to_per_frame_functional_group_item(self):
+    def test_adding_frame_adds_derivation_image_sequence_to_per_frame_functional_group_item(self):
         frame_item = self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1)
-        assert 'SourceImageSequence' not in frame_item
+        assert 'DerivationImageSequence' in frame_item
 
         dummy = self.generate_dummy_source_image()
 
         frame_item = self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1, [dummy])
-        assert 'SourceImageSequence' in frame_item
-        assert len(frame_item.SourceImageSequence) == 1
+        assert 'SourceImageSequence' in frame_item.DerivationImageSequence[0]
+        assert len(frame_item.DerivationImageSequence[0].SourceImageSequence) == 1
 
     def test_adding_frame_adds_referenced_segment_to_per_frame_functional_group_item(self):
         frame_item = self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1)
