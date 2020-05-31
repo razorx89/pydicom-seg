@@ -18,7 +18,7 @@ class TestMultiClassWriter:
             'dcmqi',
             'doc',
             'examples',
-            'seg-example_multiple_segments.json'
+            'seg-example_multiple_segments_single_input_file.json'
         ))
 
     @pytest.mark.parametrize('dtype', [np.int8, np.float32])
