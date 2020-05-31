@@ -4,6 +4,8 @@ from typing import Dict, Tuple
 import numpy as np
 import pydicom
 
+from pydicom_seg.dicom_utils import dcm_to_sitk_orientation
+
 
 logger = logging.getLogger(__name__)
 
@@ -52,19 +54,7 @@ def get_image_direction(dataset: pydicom.Dataset) -> np.ndarray:
     iop = sfg.PlaneOrientationSequence[0].ImageOrientationPatient
     assert len(iop) == 6
 
-    # Extract x-vector and y-vector
-    x_dir = [float(x) for x in iop[:3]]
-    y_dir = [float(x) for x in iop[3:]]
-
-    # L2 normalize x-vector and y-vector
-    x_dir /= np.linalg.norm(x_dir)
-    y_dir /= np.linalg.norm(y_dir)
-
-    # Compute perpendicular z-vector
-    z_dir = np.cross(x_dir, y_dir)
-
-    # TODO Maybe incorrect, transpose needed?
-    return np.stack([x_dir, y_dir, z_dir], axis=1)
+    return dcm_to_sitk_orientation(iop)
 
 
 def get_image_origin_and_extent(dataset: pydicom.Dataset, direction: np.ndarray) -> Tuple[Tuple[float, ...], float]:

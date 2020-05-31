@@ -5,6 +5,8 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
+from pydicom_seg.dicom_utils import sitk_to_dcm_orientation
+
 
 logger = logging.getLogger(__name__)
 
@@ -138,8 +140,8 @@ def set_shared_functional_groups_sequence(target: pydicom.Dataset, segmentation:
     dataset.PixelMeasuresSequence[0].SliceThickness = f'{spacing[2]:e}'
     dataset.PixelMeasuresSequence[0].SpacingBetweenSlices = f'{spacing[2]:e}'
     dataset.PlaneOrientationSequence = [pydicom.Dataset()]
-    dataset.PlaneOrientationSequence[0].ImageOrientationPatient = [
-        f'{x:e}' for x in np.ravel(segmentation.GetDirection())[:6]
-    ]
+    dataset.PlaneOrientationSequence[0].ImageOrientationPatient = sitk_to_dcm_orientation(
+        segmentation
+    )
 
     target.SharedFunctionalGroupsSequence = pydicom.Sequence([dataset])

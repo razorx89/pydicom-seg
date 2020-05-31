@@ -1,6 +1,8 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
+import numpy as np
 import pydicom
+import SimpleITK as sitk
 
 
 class CodeSequence(pydicom.Sequence):
@@ -51,3 +53,28 @@ class DimensionOrganizationSequence(pydicom.Sequence):
             ds.FunctionalGroupPointer = functional_group_pointer
 
         self.append(ds)
+
+def dcm_to_sitk_orientation(iop: List[str]) -> np.ndarray:
+    assert len(iop) == 6
+
+    # Extract x-vector and y-vector
+    x_dir = [float(x) for x in iop[:3]]
+    y_dir = [float(x) for x in iop[3:]]
+
+    # L2 normalize x-vector and y-vector
+    x_dir /= np.linalg.norm(x_dir)
+    y_dir /= np.linalg.norm(y_dir)
+
+    # Compute perpendicular z-vector
+    z_dir = np.cross(x_dir, y_dir)
+
+    return np.stack([x_dir, y_dir, z_dir], axis=1)
+
+
+def sitk_to_dcm_orientation(img: sitk.Image) -> List[float]:
+    direction = img.GetDirection()
+    assert len(direction) == 9
+    direction = np.asarray(direction).reshape((3, 3))
+    orientation = direction.T[:2]
+    tmp: List[float] = orientation.ravel().tolist()
+    return tmp

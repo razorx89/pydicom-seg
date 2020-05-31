@@ -90,11 +90,10 @@ class TestMultiClassWriter:
         assert sfg.PixelMeasuresSequence[0].SliceThickness == 5.0
         assert sfg.PixelMeasuresSequence[0].SpacingBetweenSlices == 5.0
         assert all([
-            str(x) == y
+            x == y
             for x, y in zip(
                 sfg.PlaneOrientationSequence[0].ImageOrientationPatient,
-                ['1.000000e+00', '0.000000e+00', '0.000000e+00',
-                 '0.000000e+00', '-1.000000e+00', '0.000000e+00']
+                [1.0, 0.0, 0.0, 0.0, -1.0, 0.0]
             )
         ])
 
