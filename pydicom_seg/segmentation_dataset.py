@@ -156,6 +156,16 @@ class SegmentationDataset(pydicom.Dataset):
         self.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
         self.fix_meta_info()
 
+        # Fix missing FileMetaInformationGroupLength. It is added by `pydicom` when saving with
+        # `write_as_original=False`, but this can be a dangerous pitfall if not done correctly
+        if 'FileMetaInformationGroupLength' not in self.file_meta:
+            # See: https://github.com/pydicom/pydicom/blob/e8de9d31fc97e1162441adf4bd2742b82149ce18/pydicom/filewriter.py#L645-L736
+            buffer = pydicom.filewriter.DicomBytesIO()
+            buffer.is_little_endian = True
+            buffer.is_implicit_VR = False
+            pydicom.filewriter.write_dataset(buffer, self.file_meta)
+            self.file_meta.FileMetaInformationGroupLength = buffer.tell()
+
     def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence) -> None:
         """Adds a dimension organization sequence to the dataset.
 

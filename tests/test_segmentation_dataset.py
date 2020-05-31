@@ -41,6 +41,10 @@ class TestSegmentationDataset:
     def test_dataset_has_valid_file_meta(self):
         pydicom.dataset.validate_file_meta(self.dataset.file_meta)
 
+    def test_file_meta_has_information_group_length_computed(self):
+        assert 'FileMetaInformationGroupLength' in self.dataset.file_meta
+        assert self.dataset.file_meta.FileMetaInformationGroupLength > 0
+
     def test_mandatory_sop_common(self):
         assert self.dataset.SOPClassUID == '1.2.840.10008.5.1.4.1.1.66.4'
         assert 'SOPInstanceUID' in self.dataset
