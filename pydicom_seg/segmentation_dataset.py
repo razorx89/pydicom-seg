@@ -154,7 +154,9 @@ class SegmentationDataset(pydicom.Dataset):
     def _set_file_meta(self) -> None:
         self.file_meta = pydicom.Dataset()
         self.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
-        self.fix_meta_info()
+        self.file_meta.MediaStorageSOPInstanceUID = self.SOPInstanceUID
+        self.file_meta.MediaStorageSOPClassUID = self.SOPClassUID
+        pydicom.dataset.validate_file_meta(self.file_meta)
 
         # Fix missing FileMetaInformationGroupLength. It is added by `pydicom` when saving with
         # `write_as_original=False`, but this can be a dangerous pitfall if not done correctly
