@@ -87,4 +87,5 @@ class TestOrientationConversions:
     def test_sitk_to_dcm_conversion(self):
         img = sitk.ReadImage(self.tmp_file.name)
         converted_orientation = sitk_to_dcm_orientation(img)
-        assert np.isclose(self.dcm.ImageOrientationPatient, converted_orientation).all()
+        dcm_orientation_str = [x.original_string for x in self.dcm.ImageOrientationPatient]
+        assert dcm_orientation_str == converted_orientation

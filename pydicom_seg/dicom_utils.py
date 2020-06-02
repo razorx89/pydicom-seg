@@ -71,10 +71,9 @@ def dcm_to_sitk_orientation(iop: List[str]) -> np.ndarray:
     return np.stack([x_dir, y_dir, z_dir], axis=1)
 
 
-def sitk_to_dcm_orientation(img: sitk.Image) -> List[float]:
+def sitk_to_dcm_orientation(img: sitk.Image) -> List[str]:
     direction = img.GetDirection()
     assert len(direction) == 9
     direction = np.asarray(direction).reshape((3, 3))
     orientation = direction.T[:2]
-    tmp: List[float] = orientation.ravel().tolist()
-    return tmp
+    return [f'{x:e}' for x in orientation.ravel()]
