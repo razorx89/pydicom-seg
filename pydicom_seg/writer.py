@@ -145,6 +145,7 @@ class MultiClassWriter:
             writer_utils.import_hierarchy(
                 target=result,
                 reference=source_images[0],
+                import_frame_of_reference=True,
                 import_series=False
             )
         else:

@@ -209,3 +209,23 @@ class TestMultiClassWriter:
 
         assert ds.NumberOfFrames == 1
         assert len(ds.SegmentSequence) == 1
+
+    def test_frame_of_reference_copied_from_reference_image(self):
+        data = np.ones((1, 512, 512), dtype=np.uint8)
+        segmentation = sitk.GetImageFromArray(data)
+        writer = MultiClassWriter(self.template)
+
+        dummy_dcm = pydicom.dcmread(os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'pydicom_seg',
+            'externals',
+            'dcmqi',
+            'data',
+            'segmentations',
+            'ct-3slice',
+            '01.dcm'
+        ))
+
+        ds = writer.write(segmentation, [dummy_dcm])
+
+        assert ds.FrameOfReferenceUID == dummy_dcm.FrameOfReferenceUID
