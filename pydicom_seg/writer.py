@@ -45,8 +45,9 @@ class MultiClassWriter:
             `metainfo.json` file for the dcmqi binaries.
         inplane_cropping: If enabled, slices will be cropped (Rows/Columns)
             to the minimum enclosing boundingbox of all labels across all
-            slices.
-        skip_empty_slices: If enabled, empty slices with only zeros 
+            slices. Warning: This is an experimental feature and might not
+            be supported when decoding with other frameworks / DICOM viewers.
+        skip_empty_slices: If enabled, empty slices with only zeros
             (background label) will be ommited from the DICOM-SEG.
         skip_missing_segment: If enabled, just emit a warning if segment
             information is missing in the template for a specific label.
@@ -57,7 +58,7 @@ class MultiClassWriter:
 
     def __init__(self,
                  template: pydicom.Dataset,
-                 inplane_cropping: bool = True,
+                 inplane_cropping: bool = False,
                  skip_empty_slices: bool = True,
                  skip_missing_segment: bool = False):
         self._inplane_cropping = inplane_cropping
@@ -145,6 +146,7 @@ class MultiClassWriter:
             writer_utils.import_hierarchy(
                 target=result,
                 reference=source_images[0],
+                import_frame_of_reference=True,
                 import_series=False
             )
         else:

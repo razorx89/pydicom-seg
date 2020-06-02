@@ -50,6 +50,11 @@ data. Since the DICOM standard requires encoded frames to have all the same
 size, the minimum bounding box of all segments is calculated for the x and
 y axes.
 
+.. warning::
+
+    Inplane cropping is an experimental feature and might not be supported by other
+    frameworks or DICOM viewers.
+
 If enabled, slices which have no annotation present for a given segment can
 be skipped during encoding. This results in smaller file sizes, because
 otherwise a frame would be encoded with only zero values.

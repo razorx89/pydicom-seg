@@ -154,7 +154,19 @@ class SegmentationDataset(pydicom.Dataset):
     def _set_file_meta(self) -> None:
         self.file_meta = pydicom.Dataset()
         self.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
-        self.fix_meta_info()
+        self.file_meta.MediaStorageSOPInstanceUID = self.SOPInstanceUID
+        self.file_meta.MediaStorageSOPClassUID = self.SOPClassUID
+        pydicom.dataset.validate_file_meta(self.file_meta)
+
+        # Fix missing FileMetaInformationGroupLength. It is added by `pydicom` when saving with
+        # `write_as_original=False`, but this can be a dangerous pitfall if not done correctly
+        if 'FileMetaInformationGroupLength' not in self.file_meta:
+            # See: https://github.com/pydicom/pydicom/blob/e8de9d31fc97e1162441adf4bd2742b82149ce18/pydicom/filewriter.py#L645-L736
+            buffer = pydicom.filewriter.DicomBytesIO()
+            buffer.is_little_endian = True
+            buffer.is_implicit_VR = False
+            pydicom.filewriter.write_dataset(buffer, self.file_meta)
+            self.file_meta.FileMetaInformationGroupLength = buffer.tell()
 
     def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence) -> None:
         """Adds a dimension organization sequence to the dataset.
@@ -246,8 +258,11 @@ class SegmentationDataset(pydicom.Dataset):
             raise IndexError('Segment not found in SegmentSequence')
         frame_fg_item.SegmentIdentificationSequence = pydicom.Sequence([pydicom.Dataset()])
         frame_fg_item.SegmentIdentificationSequence[0].ReferencedSegmentNumber = referenced_segment
-        if referenced_images:
-            frame_fg_item.SourceImageSequence = pydicom.Sequence()
+
+        # Each frame requires references to the original DICOM files
+        derivation_image = pydicom.Dataset()
+        derivation_image.SourceImageSequence = pydicom.Sequence()
+
         for referenced_image in referenced_images:
             # Update (0x0008,0x1115) ReferencedSeriesSequence for each referenced image
             self.add_instance_reference(referenced_image)
@@ -256,8 +271,10 @@ class SegmentationDataset(pydicom.Dataset):
             ref = pydicom.Dataset()
             ref.ReferencedSOPClassUID = referenced_image.SOPClassUID
             ref.ReferencedSOPInstanceUID = referenced_image.SOPInstanceUID
-            ref.PurposeOfReferenceCodeSequence = CodeSequence('121322', 'DCM', 'Segmentation')
-            frame_fg_item.SourceImageSequence.append(ref)
+            ref.PurposeOfReferenceCodeSequence = CodeSequence('121322', 'DCM', 'Source image for image processing operation')
+            derivation_image.SourceImageSequence.append(ref)
+        derivation_image.DerivationCodeSequence = CodeSequence('113076', 'DCM', 'Segmentation')
+        frame_fg_item.DerivationImageSequence = pydicom.Sequence([derivation_image])
         self.PerFrameFunctionalGroupsSequence.append(frame_fg_item)
 
         return frame_fg_item

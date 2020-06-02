@@ -41,6 +41,10 @@ class TestSegmentationDataset:
     def test_dataset_has_valid_file_meta(self):
         pydicom.dataset.validate_file_meta(self.dataset.file_meta)
 
+    def test_file_meta_has_information_group_length_computed(self):
+        assert 'FileMetaInformationGroupLength' in self.dataset.file_meta
+        assert self.dataset.file_meta.FileMetaInformationGroupLength > 0
+
     def test_mandatory_sop_common(self):
         assert self.dataset.SOPClassUID == '1.2.840.10008.5.1.4.1.1.66.4'
         assert 'SOPInstanceUID' in self.dataset
@@ -278,15 +282,15 @@ class TestSegmentationDataset:
         self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1)
         assert len(self.dataset.PerFrameFunctionalGroupsSequence) == 1
 
-    def test_adding_frame_with_reference_adds_source_image_sequence_to_per_frame_functional_group_item(self):
+    def test_adding_frame_adds_derivation_image_sequence_to_per_frame_functional_group_item(self):
         frame_item = self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1)
-        assert 'SourceImageSequence' not in frame_item
+        assert 'DerivationImageSequence' in frame_item
 
         dummy = self.generate_dummy_source_image()
 
         frame_item = self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1, [dummy])
-        assert 'SourceImageSequence' in frame_item
-        assert len(frame_item.SourceImageSequence) == 1
+        assert 'SourceImageSequence' in frame_item.DerivationImageSequence[0]
+        assert len(frame_item.DerivationImageSequence[0].SourceImageSequence) == 1
 
     def test_adding_frame_adds_referenced_segment_to_per_frame_functional_group_item(self):
         frame_item = self.dataset.add_frame(np.zeros((1, 1), np.uint8), 1)
