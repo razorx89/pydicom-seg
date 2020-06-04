@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/pydicom-seg.svg)](https://badge.fury.io/py/pydicom-seg)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3597421.svg)](https://doi.org/10.5281/zenodo.3597421)
 
-Reading and writing of [DICOM-SEG](http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) medical image segmentation storage files using [pydicom](https://github.com/pydicom/pydicom) as DICOM serialization/deserialization library.
+Reading and writing of [DICOM-SEG](http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) medical image segmentation storage files using [pydicom](https://github.com/pydicom/pydicom) as DICOM serialization/deserialization library. For detailed explanations about supported functionality and usage please have a look at the [documentation](https://razorx89.github.io/pydicom-seg).
 
 ## Motivation
 
@@ -35,7 +35,9 @@ pip install pydicom-seg
 This package uses [Poetry](https://python-poetry.org/) (version >= 1.0.5) as build system.
 
 ```bash
-git clone https://github.com/razorx89/pydicom-seg.git
+git clone \
+    --recurse-submodules \
+    https://github.com/razorx89/pydicom-seg.git
 cd pydicom-seg
 poetry build
 pip install dist/pydicom_seg-<version>-py3-none-any.whl
@@ -87,8 +89,8 @@ source_images = [
 template = pydicom_seg.template.from_dcmqi_metainfo('metainfo.json')
 writer = pydicom_seg.MultiClassWriter(
     template=template,
-    inplane_cropping=True,  # Crop image slices to the minimum bounding box on 
-                            # x and y axes
+    inplane_cropping=False,  # Crop image slices to the minimum bounding box on 
+                             # x and y axes. Maybe not supported by other frameworks.
     skip_empty_slices=True,  # Don't encode slices with only zeros
     skip_missing_segments=False,  # If a segment definition is missing in the
                                   # template, then raise an error instead of
