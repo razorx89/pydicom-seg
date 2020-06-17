@@ -78,6 +78,9 @@ sitk.WriteImage(image, '/tmp/segmentation.nrrd', True)
 
 ### Saving a multi-class segmentation
 
+Please generate a `metainfo.json` for the segments you want to serialize using the
+[web-based editor from dcmqi](http://qiicr.org/dcmqi/#/seg).
+
 ```python
 segmentation: SimpleITK.Image = ...  # A segmentation image with integer data type
                                      # and a single component per voxel
@@ -92,9 +95,9 @@ writer = pydicom_seg.MultiClassWriter(
     inplane_cropping=False,  # Crop image slices to the minimum bounding box on 
                              # x and y axes. Maybe not supported by other frameworks.
     skip_empty_slices=True,  # Don't encode slices with only zeros
-    skip_missing_segments=False,  # If a segment definition is missing in the
-                                  # template, then raise an error instead of
-                                  # skipping it.
+    skip_missing_segment=False,  # If a segment definition is missing in the
+                                 # template, then raise an error instead of
+                                 # skipping it.
 )
 dcm = writer.write(segmentation, source_images)
 dcm.save_as('segmentation.dcm')
