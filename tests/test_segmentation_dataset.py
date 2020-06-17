@@ -52,7 +52,7 @@ class TestSegmentationDataset:
     def test_mandatory_enhanced_equipment_elements(self):
         """http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.7.5.2.html#table_C.7-8b"""
         assert self.dataset.Manufacturer == 'pydicom-seg'
-        assert self.dataset.ManufacturerModelName == 'git@github.com/razorx89/pydicom-seg.git'
+        assert self.dataset.ManufacturerModelName == 'https://github.com/razorx89/pydicom-seg'
         assert self.dataset.DeviceSerialNumber == '0'
         assert self.dataset.SoftwareVersions == __version__
 

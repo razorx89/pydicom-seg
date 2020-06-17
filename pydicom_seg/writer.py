@@ -134,6 +134,7 @@ class MultiClassWriter:
 
         # Create target dataset for storing serialized data
         result = SegmentationDataset(
+            reference_dicom=source_images[0] if source_images else None,
             rows=max_y - min_y,
             columns=max_x - min_x,
             segmentation_type=SegmentationType.BINARY
@@ -142,16 +143,6 @@ class MultiClassWriter:
         dimension_organization.add_dimension('ReferencedSegmentNumber', 'SegmentIdentificationSequence')
         dimension_organization.add_dimension('ImagePositionPatient', 'PlanePositionSequence')
         result.add_dimension_organization(dimension_organization)
-        if source_images:
-            writer_utils.import_hierarchy(
-                target=result,
-                reference=source_images[0],
-                import_frame_of_reference=True,
-                import_series=False
-            )
-        else:
-            logger.warning('No source images provided, cannot import patient '\
-                'and study level information.')
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,

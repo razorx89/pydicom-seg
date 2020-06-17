@@ -1,13 +1,17 @@
 from datetime import datetime
 import enum
-from typing import List
+import logging
+from typing import List, Optional
 
 import numpy as np
 import pydicom
 from pydicom._storage_sopclass_uids import SegmentationStorage
 
-from pydicom_seg import __version__
+from pydicom_seg import __version__, writer_utils
 from pydicom_seg.dicom_utils import CodeSequence, DimensionOrganizationSequence
+
+
+logger = logging.getLogger(__name__)
 
 
 class SegmentationFractionalType(enum.Enum):
@@ -76,10 +80,21 @@ class SegmentationDataset(pydicom.Dataset):
                  columns: int,
                  segmentation_type: SegmentationType,
                  segmentation_fractional_type: SegmentationFractionalType = SegmentationFractionalType.PROBABILITY,
+                 reference_dicom: Optional[pydicom.Dataset] = None,
                  max_fractional_value: int = 255):
         super().__init__()
 
         self._frames: List[np.ndarray] = []
+        if reference_dicom:
+            writer_utils.import_hierarchy(
+                target=self,
+                reference=reference_dicom,
+                import_frame_of_reference=True,
+                import_series=False
+            )
+        else:
+            logger.warning('No source images provided, cannot import patient '\
+                'and study level information.')
 
         self.SpecificCharacterSet = 'ISO_IR 100'
         self.SOPClassUID = SegmentationStorage
@@ -106,7 +121,7 @@ class SegmentationDataset(pydicom.Dataset):
         # Enhanced General Equipment module
         # http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.7.5.2.html#table_C.7-8b
         self.Manufacturer = 'pydicom-seg'
-        self.ManufacturerModelName = 'git@github.com/razorx89/pydicom-seg.git'
+        self.ManufacturerModelName = 'https://github.com/razorx89/pydicom-seg'
         self.DeviceSerialNumber = '0'
         self.SoftwareVersions = __version__
 
