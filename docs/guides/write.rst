@@ -69,7 +69,7 @@ loaded from disk as a ``SimpleITK.Image``.
 .. code-block:: python
 
     reader = sitk.ImageSeriesReader()
-    dcm_files = reader.GDCMGetSeriesFileNames('dir/to/study', '<SeriesInstanceUID>')
+    dcm_files = reader.GetGDCMSeriesFileNames('dir/to/study', '<SeriesInstanceUID>')
     reader.SetFileNames(dcm_files)
     image = reader.Execute()
     image_data = sitk.GetArrayFromImage(image)
