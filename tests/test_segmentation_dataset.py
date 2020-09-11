@@ -335,3 +335,15 @@ class TestSegmentationDataset:
 
         assert len(self.dataset.DimensionOrganizationSequence) == 2
         assert len(self.dataset.DimensionIndexSequence) == 4
+
+    def test_dataset_has_preemble(self):
+        assert self.dataset.get('preamble')
+        assert len(self.dataset.preamble) == 128
+
+    def test_dataset_preamble_persisted(self):
+        with tempfile.NamedTemporaryFile() as ofile:
+            self.dataset.save_as(ofile.name)
+            reloaded_ds = pydicom.dcmread(ofile.name)
+        assert reloaded_ds.get('preamble')
+        assert len(reloaded_ds.preamble) == 128
+        assert self.dataset.preamble == reloaded_ds.preamble
