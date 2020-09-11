@@ -96,6 +96,7 @@ class SegmentationDataset(pydicom.Dataset):
             logger.warning('No source images provided, cannot import patient '\
                 'and study level information.')
 
+        self.preamble = b'\0' * 128
         self.SpecificCharacterSet = 'ISO_IR 100'
         self.SOPClassUID = SegmentationStorage
         self.SOPInstanceUID = pydicom.uid.generate_uid()
