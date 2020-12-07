@@ -229,11 +229,11 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pydicom"
-version = "1.4.2"
+version = "2.1.1"
 description = "Pure python package for DICOM medical file reading and writing"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [[package]]
 name = "pygments"
@@ -282,7 +282,7 @@ py = ">=1.5.0"
 wcwidth = "*"
 
 [package.extras]
-checkqa-mypy = ["mypy (v0.761)"]
+checkqa-mypy = ["mypy (==v0.761)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
@@ -309,7 +309,7 @@ urllib3 = ">=1.21.1,<1.25.0 || >1.25.0,<1.25.1 || >1.25.1,<1.26"
 
 [package.extras]
 security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
-socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
+socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 
 [[package]]
 name = "simpleitk"
@@ -474,7 +474,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
 secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "pyOpenSSL (>=0.14)", "ipaddress"]
-socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
+socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "wcwidth"
@@ -499,7 +499,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "1ede14ffecf7d3ebcbd1567cd381cfb71bb08e44e694d426138413f2cada912e"
+content-hash = "9564723f1c32ad2b4828c8930d33754819bd6c1b4b3198e08c0447628b61d01b"
 
 [metadata.files]
 alabaster = [
@@ -677,8 +677,8 @@ py = [
     {file = "py-1.8.1.tar.gz", hash = "sha256:5e27081401262157467ad6e7f851b7aa402c5852dbcb3dae06768434de5752aa"},
 ]
 pydicom = [
-    {file = "pydicom-1.4.2-py2.py3-none-any.whl", hash = "sha256:f315ba2296346f4f9913c269618201e170b9326362e2ada6041ca91b7cb2117b"},
-    {file = "pydicom-1.4.2.tar.gz", hash = "sha256:9488495a9f3e202d1219f7cb165aee0de31efd512d938c0226d34147ce860391"},
+    {file = "pydicom-2.1.1-py3-none-any.whl", hash = "sha256:9f20436e61f52bd83a832760a853c505e969fba7b35c46393a2a13dfbbfb211c"},
+    {file = "pydicom-2.1.1.tar.gz", hash = "sha256:72a11086f6a277c1529a552583fde73e03256a912173f15e9bc256e5b28f28f1"},
 ]
 pygments = [
     {file = "Pygments-2.6.1-py3-none-any.whl", hash = "sha256:ff7a40b4860b727ab48fad6360eb351cc1b33cbf9b15a0f689ca5353e9463324"},

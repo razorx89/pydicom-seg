@@ -100,7 +100,7 @@ class SegmentationDataset(pydicom.Dataset):
         self.SpecificCharacterSet = 'ISO_IR 100'
         self.SOPClassUID = SegmentationStorage
         self.SOPInstanceUID = pydicom.uid.generate_uid()
-        self._set_file_meta()
+        self._init_file_meta()
 
         # General Series module
         self.Modality = 'SEG'
@@ -167,8 +167,11 @@ class SegmentationDataset(pydicom.Dataset):
         self.PerFrameFunctionalGroupsSequence = pydicom.Sequence()
         self.NumberOfFrames = 0
 
-    def _set_file_meta(self) -> None:
-        self.file_meta = pydicom.Dataset()
+    def _init_file_meta(self) -> None:
+        if pydicom.__version_info__[0] == '1':
+            self.file_meta = pydicom.Dataset()
+        else:
+            self.file_meta = pydicom.dataset.FileMetaDataset()
         self.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
         self.file_meta.MediaStorageSOPInstanceUID = self.SOPInstanceUID
         self.file_meta.MediaStorageSOPClassUID = self.SOPClassUID
