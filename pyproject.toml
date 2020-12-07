@@ -15,7 +15,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-pydicom = "^1.4.0"
+pydicom = "^2.0.0"
 SimpleITK = ">1.2.4"
 numpy = "^1.18.0"
 jsonschema = "^3.2.0"
