@@ -1,4 +1,4 @@
-__version__ = '0.2.1'
+__version__ = '0.2.3'
 
 from pydicom_seg import template
 from pydicom_seg.reader import MultiClassReader, SegmentReader
