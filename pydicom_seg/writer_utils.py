@@ -18,7 +18,6 @@ def copy_segmentation_template(target: pydicom.Dataset,
     # Copy mandatory fields
     target.ClinicalTrialSeriesID = template.ClinicalTrialSeriesID
     target.ClinicalTrialTimePointID = template.ClinicalTrialTimePointID
-    target.ContentCreatorName = template.ContentCreatorName
     target.SeriesDescription = template.SeriesDescription
     target.SeriesNumber = template.SeriesNumber
 
@@ -26,7 +25,7 @@ def copy_segmentation_template(target: pydicom.Dataset,
     if 'ClinicalTrialCoordinatingCenterName' in template:
         target.ClinicalTrialCoordinatingCenterName = template.ClinicalTrialCoordinatingCenterName
 
-    target.ContentCreatorName = 'pydicom_seg'
+    target.ContentCreatorName = template.get('ContentCreatorName', 'pydicom_seg')
     target.ContentDescription = template.get('ContentDescription', 'pydicom_seg')
     target.ContentLabel = template.get('ContentLabel', 'pydicom_seg')
 
