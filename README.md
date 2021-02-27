@@ -43,6 +43,20 @@ poetry build
 pip install dist/pydicom_seg-<version>-py3-none-any.whl
 ```
 
+### Development
+
+After cloning the repository, please install the git `pre-commit` hook to
+enforce code style and run static code analysis on every git commit.
+
+```bash
+git clone \
+    --recurse-submodules \
+    https://github.com/razorx89/pydicom-seg.git
+cd pydicom-seg
+poetry install
+poetry run pre-commit install
+```
+
 ## Getting Started
 
 ### Loading binary segments
@@ -92,7 +106,7 @@ source_images = [
 template = pydicom_seg.template.from_dcmqi_metainfo('metainfo.json')
 writer = pydicom_seg.MultiClassWriter(
     template=template,
-    inplane_cropping=False,  # Crop image slices to the minimum bounding box on 
+    inplane_cropping=False,  # Crop image slices to the minimum bounding box on
                              # x and y axes. Maybe not supported by other frameworks.
     skip_empty_slices=True,  # Don't encode slices with only zeros
     skip_missing_segment=False,  # If a segment definition is missing in the

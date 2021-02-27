@@ -70,8 +70,8 @@ DICOM Data Elements
 Fractional Segmentations
 ------------------------
 
-The DICOM-SEG standard allows for fractional segmentations, e.g. for 
-representing probabilities or the ratio of tissue composition. A floating 
+The DICOM-SEG standard allows for fractional segmentations, e.g. for
+representing probabilities or the ratio of tissue composition. A floating
 point value between 0.0 and 1.0 will be quantized into an unsigned integer with
 8-bits, which results in a minimum step size of ~0.39% between two integer
 values. Possible use cases are:
