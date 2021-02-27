@@ -37,7 +37,7 @@ the generated file size if the segmentation data is very sparse.
 
     writer = pydicom_seg.MultiClassWriter(
         template=template,
-        inplane_cropping=True,  # Crop image slices to the minimum bounding box on 
+        inplane_cropping=True,  # Crop image slices to the minimum bounding box on
                                 # x and y axes
         skip_empty_slices=True,  # Don't encode slices with only zeros
         skip_missing_segment=False,  # If a segment definition is missing in the
@@ -78,7 +78,7 @@ At this point some kind of image processing is taking place, maybe a semantic
 segmentation neural network is applied in order to get the segmentation data.
 
 .. code-block:: python
-    
+
     segmentation_data = process_image(image_data)
 
 Since ``pydicom_seg`` expects a ``SimpleITK.Image`` as input to the writer, the
