@@ -1,6 +1,6 @@
-from datetime import datetime
 import enum
 import logging
+from datetime import datetime
 from typing import List, Optional
 
 import numpy as np
@@ -10,27 +10,29 @@ from pydicom._storage_sopclass_uids import SegmentationStorage
 from pydicom_seg import __version__, writer_utils
 from pydicom_seg.dicom_utils import CodeSequence, DimensionOrganizationSequence
 
-
 logger = logging.getLogger(__name__)
 
 
 class SegmentationFractionalType(enum.Enum):
     """Possible values for DICOM tag (0x0062, 0x0010)"""
-    PROBABILITY = 'PROBABILITY'
-    OCCUPANCY = 'OCCUPANCY'
+
+    PROBABILITY = "PROBABILITY"
+    OCCUPANCY = "OCCUPANCY"
 
 
 class SegmentationType(enum.Enum):
     """Possible values for DICOM tag (0x0062, 0x0001)"""
-    BINARY = 'BINARY'
-    FRACTIONAL = 'FRACTIONAL'
+
+    BINARY = "BINARY"
+    FRACTIONAL = "FRACTIONAL"
 
 
 class SegmentsOverlap(enum.Enum):
     """Possible values for DICOM tag (0x0062, 0x0013)"""
-    YES = 'YES'
-    UNDEFINED = 'UNDEFINED'
-    NO = 'NO'
+
+    YES = "YES"
+    UNDEFINED = "UNDEFINED"
+    NO = "NO"
 
 
 class SegmentationDataset(pydicom.Dataset):
@@ -75,13 +77,17 @@ class SegmentationDataset(pydicom.Dataset):
         max_fractional_value: Fractional data is expected to be within
             `[0.0, 1.0]` and will be rescaled to `[0, max_fractional_value]`.
     """
-    def __init__(self, *,
-                 rows: int,
-                 columns: int,
-                 segmentation_type: SegmentationType,
-                 segmentation_fractional_type: SegmentationFractionalType = SegmentationFractionalType.PROBABILITY,
-                 reference_dicom: Optional[pydicom.Dataset] = None,
-                 max_fractional_value: int = 255):
+
+    def __init__(
+        self,
+        *,
+        rows: int,
+        columns: int,
+        segmentation_type: SegmentationType,
+        segmentation_fractional_type: SegmentationFractionalType = SegmentationFractionalType.PROBABILITY,
+        reference_dicom: Optional[pydicom.Dataset] = None,
+        max_fractional_value: int = 255,
+    ):
         super().__init__()
 
         self._frames: List[np.ndarray] = []
@@ -90,27 +96,29 @@ class SegmentationDataset(pydicom.Dataset):
                 target=self,
                 reference=reference_dicom,
                 import_frame_of_reference=True,
-                import_series=False
+                import_series=False,
             )
         else:
-            logger.warning('No source images provided, cannot import patient '\
-                'and study level information.')
+            logger.warning(
+                "No source images provided, cannot import patient "
+                "and study level information."
+            )
 
-        self.preamble = b'\0' * 128
-        self.SpecificCharacterSet = 'ISO_IR 100'
+        self.preamble = b"\0" * 128
+        self.SpecificCharacterSet = "ISO_IR 100"
         self.SOPClassUID = SegmentationStorage
         self.SOPInstanceUID = pydicom.uid.generate_uid()
         self._init_file_meta()
 
         # General Series module
-        self.Modality = 'SEG'
+        self.Modality = "SEG"
         self.SeriesInstanceUID = pydicom.uid.generate_uid()
         self.SeriesNumber = 1
 
         # Generate SOP and Series and General Image timestamps
         timestamp = datetime.now()
-        self.InstanceCreationDate = timestamp.strftime('%Y%m%d')
-        self.InstanceCreationTime = timestamp.strftime('%H%M%S.%f')
+        self.InstanceCreationDate = timestamp.strftime("%Y%m%d")
+        self.InstanceCreationTime = timestamp.strftime("%H%M%S.%f")
         self.SeriesDate = self.InstanceCreationDate
         self.SeriesTime = self.InstanceCreationTime
         self.ContentDate = self.InstanceCreationDate
@@ -121,29 +129,29 @@ class SegmentationDataset(pydicom.Dataset):
 
         # Enhanced General Equipment module
         # http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.7.5.2.html#table_C.7-8b
-        self.Manufacturer = 'pydicom-seg'
-        self.ManufacturerModelName = 'https://github.com/razorx89/pydicom-seg'
-        self.DeviceSerialNumber = '0'
+        self.Manufacturer = "pydicom-seg"
+        self.ManufacturerModelName = "https://github.com/razorx89/pydicom-seg"
+        self.DeviceSerialNumber = "0"
         self.SoftwareVersions = __version__
 
         # Image Pixel module
         if rows <= 0 or columns <= 0:
-            raise ValueError('Rows and columns must be larger than zero')
+            raise ValueError("Rows and columns must be larger than zero")
         self.Rows = rows
         self.Columns = columns
-        self.PixelData = b''
+        self.PixelData = b""
 
         # Segmentation Image module
         # http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.2.html#table_C.8.20-2
-        self.ImageType = ['DERIVED', 'PRIMARY']
-        self.InstanceNumber = '1'
-        self.ContentLabel = 'SEGMENTATION'
-        self.ContentDescription = ''
-        self.ContentCreatorName = ''
+        self.ImageType = ["DERIVED", "PRIMARY"]
+        self.InstanceNumber = "1"
+        self.ContentLabel = "SEGMENTATION"
+        self.ContentDescription = ""
+        self.ContentCreatorName = ""
         self.SamplesPerPixel = 1
-        self.PhotometricInterpretation = 'MONOCHROME2'
+        self.PhotometricInterpretation = "MONOCHROME2"
         self.PixelRepresentation = 0
-        self.LossyImageCompression = '00'
+        self.LossyImageCompression = "00"
         self.SegmentSequence = pydicom.Sequence()
 
         self.SegmentationType = segmentation_type.value
@@ -156,7 +164,9 @@ class SegmentationDataset(pydicom.Dataset):
             # Fractional segmentations are always 8-bit unsigned
             self.SegmentationFractionalType = segmentation_fractional_type.value
             if max_fractional_value < 1 or max_fractional_value > 255:
-                raise ValueError('Invalid maximum fractional value for 8-bit unsigned int data')
+                raise ValueError(
+                    "Invalid maximum fractional value for 8-bit unsigned int data"
+                )
             self.MaximumFractionalValue = max_fractional_value
             self.BitsAllocated = 8
             self.BitsStored = 8
@@ -168,7 +178,7 @@ class SegmentationDataset(pydicom.Dataset):
         self.NumberOfFrames = 0
 
     def _init_file_meta(self) -> None:
-        if pydicom.__version_info__[0] == '1':
+        if pydicom.__version_info__[0] == "1":
             self.file_meta = pydicom.Dataset()
         else:
             self.file_meta = pydicom.dataset.FileMetaDataset()
@@ -179,7 +189,7 @@ class SegmentationDataset(pydicom.Dataset):
 
         # Fix missing FileMetaInformationGroupLength. It is added by `pydicom` when saving with
         # `write_as_original=False`, but this can be a dangerous pitfall if not done correctly
-        if 'FileMetaInformationGroupLength' not in self.file_meta:
+        if "FileMetaInformationGroupLength" not in self.file_meta:
             # See: https://github.com/pydicom/pydicom/blob/e8de9d31fc97e1162441adf4bd2742b82149ce18/pydicom/filewriter.py#L645-L736
             buffer = pydicom.filewriter.DicomBytesIO()
             buffer.is_little_endian = True
@@ -187,7 +197,9 @@ class SegmentationDataset(pydicom.Dataset):
             pydicom.filewriter.write_dataset(buffer, self.file_meta)
             self.file_meta.FileMetaInformationGroupLength = buffer.tell()
 
-    def add_dimension_organization(self, dim_organization: DimensionOrganizationSequence) -> None:
+    def add_dimension_organization(
+        self, dim_organization: DimensionOrganizationSequence
+    ) -> None:
         """Adds a dimension organization sequence to the dataset.
 
         This methods registers the (0x0020, 0x9164) DimensionOrganizationUID
@@ -198,25 +210,31 @@ class SegmentationDataset(pydicom.Dataset):
             dim_organization: A `DimensionOrganizationSequence` with one or
                 more dimension items configured.
         """
-        if 'DimensionOrganizationSequence' not in self:
+        if "DimensionOrganizationSequence" not in self:
             self.DimensionOrganizationSequence = pydicom.Sequence()
             self.DimensionIndexSequence = pydicom.Sequence()
 
         for item in self.DimensionOrganizationSequence:
-            if item.DimensionOrganizationUID == dim_organization[0].DimensionOrganizationUID:
-                raise ValueError('Dimension organization with UID '
-                    f'{item.DimensionOrganizationUID} already exists')
-        
+            if (
+                item.DimensionOrganizationUID
+                == dim_organization[0].DimensionOrganizationUID
+            ):
+                raise ValueError(
+                    "Dimension organization with UID "
+                    f"{item.DimensionOrganizationUID} already exists"
+                )
+
         item = pydicom.Dataset()
         item.DimensionOrganizationUID = dim_organization[0].DimensionOrganizationUID
         self.DimensionOrganizationSequence.append(item)
         self.DimensionIndexSequence.extend(dim_organization)
 
-    def add_frame(self,
-                  data: np.ndarray,
-                  referenced_segment: int,
-                  referenced_images: List[pydicom.Dataset] = None
-                  ) -> pydicom.Dataset:
+    def add_frame(
+        self,
+        data: np.ndarray,
+        referenced_segment: int,
+        referenced_images: List[pydicom.Dataset] = None,
+    ) -> pydicom.Dataset:
         """Adds a frame to the dataset.
 
         Adds the frame data to the PixelData element after encoding the data
@@ -241,26 +259,31 @@ class SegmentationDataset(pydicom.Dataset):
         referenced_images = referenced_images or []
 
         if len(data.shape) != 2:
-            raise ValueError('Invalid frame data shape, expecting 2D images')
+            raise ValueError("Invalid frame data shape, expecting 2D images")
 
         if data.shape[0] != self.Rows or data.shape[1] != self.Columns:
-            raise ValueError(f'Invalid frame data shape, expecting {self.Rows}x{self.Columns} images')
+            raise ValueError(
+                f"Invalid frame data shape, expecting {self.Rows}x{self.Columns} images"
+            )
 
         # TODO Optimize packing/unpacking/concatenation by using a io.BytesIO
         # TODO stream and track free bits in the last byte
         if self.SegmentationType == SegmentationType.BINARY.value:
             if not np.issubdtype(data.dtype, np.integer):
-                raise ValueError('Binary segmentation data requires an integer data type')
+                raise ValueError(
+                    "Binary segmentation data requires an integer data type"
+                )
             data = np.greater(data, 0, dtype=np.uint8)
 
             self._frames.append(data)
             self.PixelData = np.packbits(
-                np.ravel(self._frames),
-                bitorder='little'
+                np.ravel(self._frames), bitorder="little"
             ).tobytes()
         else:
             if not np.issubdtype(data.dtype, np.floating):
-                raise ValueError('Fractional segmentation data requires a floating point data type')
+                raise ValueError(
+                    "Fractional segmentation data requires a floating point data type"
+                )
             data = np.clip(data, 0.0, 1.0)
             data *= self.MaximumFractionalValue
             data = data.astype(np.uint8)
@@ -274,9 +297,13 @@ class SegmentationDataset(pydicom.Dataset):
         # Update (0x5200,0x9230) PerFunctionalGroupsSequence
         frame_fg_item = pydicom.Dataset()
         if referenced_segment not in [x.SegmentNumber for x in self.SegmentSequence]:
-            raise IndexError('Segment not found in SegmentSequence')
-        frame_fg_item.SegmentIdentificationSequence = pydicom.Sequence([pydicom.Dataset()])
-        frame_fg_item.SegmentIdentificationSequence[0].ReferencedSegmentNumber = referenced_segment
+            raise IndexError("Segment not found in SegmentSequence")
+        frame_fg_item.SegmentIdentificationSequence = pydicom.Sequence(
+            [pydicom.Dataset()]
+        )
+        frame_fg_item.SegmentIdentificationSequence[
+            0
+        ].ReferencedSegmentNumber = referenced_segment
 
         # Each frame requires references to the original DICOM files
         derivation_image = pydicom.Dataset()
@@ -290,9 +317,13 @@ class SegmentationDataset(pydicom.Dataset):
             ref = pydicom.Dataset()
             ref.ReferencedSOPClassUID = referenced_image.SOPClassUID
             ref.ReferencedSOPInstanceUID = referenced_image.SOPInstanceUID
-            ref.PurposeOfReferenceCodeSequence = CodeSequence('121322', 'DCM', 'Source image for image processing operation')
+            ref.PurposeOfReferenceCodeSequence = CodeSequence(
+                "121322", "DCM", "Source image for image processing operation"
+            )
             derivation_image.SourceImageSequence.append(ref)
-        derivation_image.DerivationCodeSequence = CodeSequence('113076', 'DCM', 'Segmentation')
+        derivation_image.DerivationCodeSequence = CodeSequence(
+            "113076", "DCM", "Segmentation"
+        )
         frame_fg_item.DerivationImageSequence = pydicom.Sequence([derivation_image])
         self.PerFrameFunctionalGroupsSequence.append(frame_fg_item)
 
@@ -308,7 +339,7 @@ class SegmentationDataset(pydicom.Dataset):
         Returns:
             Returns `True`, if `dataset` was added as a reference.
         """
-        if 'ReferencedSeriesSequence' not in self:
+        if "ReferencedSeriesSequence" not in self:
             self.ReferencedSeriesSequence = pydicom.Sequence()
 
         for series_item in self.ReferencedSeriesSequence:

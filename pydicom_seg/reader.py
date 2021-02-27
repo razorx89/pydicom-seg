@@ -5,15 +5,11 @@ from typing import Dict, List, Set
 import attr
 import numpy as np
 import pydicom
-from pydicom._storage_sopclass_uids import SegmentationStorage
 import SimpleITK as sitk
+from pydicom._storage_sopclass_uids import SegmentationStorage
 
 from pydicom_seg import reader_utils
-from pydicom_seg.segmentation_dataset import (
-    SegmentsOverlap,
-    SegmentationType
-)
-
+from pydicom_seg.segmentation_dataset import SegmentationType, SegmentsOverlap
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +22,7 @@ class _ReadResultBase:
     Contains common information about a decoded segmentation, e.g. origin,
     voxel spacing and the direction matrix.
     """
+
     dataset: pydicom.Dataset = attr.ib()
     direction: np.ndarray = attr.ib()
     origin: tuple = attr.ib()
@@ -49,6 +46,7 @@ class _ReadResultBase:
 @attr.s(init=False)
 class SegmentReadResult(_ReadResultBase):
     """Read result for segment-based decoding of DICOM-SEGs."""
+
     _segment_data: Dict[int, np.ndarray] = attr.ib()
 
     @property
@@ -68,6 +66,7 @@ class SegmentReadResult(_ReadResultBase):
 
 class MultiClassReadResult(_ReadResultBase):
     """Read result for multi-class decoding of DICOM-SEGs."""
+
     data: np.ndarray = attr.ib()
 
     @property
@@ -100,9 +99,7 @@ class _ReaderBase(abc.ABC):
             the spatial location and extent of the volume.
         """
 
-    def _read_common(self,
-                     dataset: pydicom.Dataset,
-                     result: _ReadResultBase) -> None:
+    def _read_common(self, dataset: pydicom.Dataset, result: _ReadResultBase) -> None:
         """Read common information from a dataset and store it.
 
         Args:
@@ -110,16 +107,22 @@ class _ReaderBase(abc.ABC):
             result: A `_ReadResultBase` derived result object, where the common
                 informations are stored.
         """
-        if dataset.SOPClassUID != SegmentationStorage or dataset.Modality != 'SEG':
-            raise ValueError('DICOM dataset is not a DICOM-SEG storage')
+        if dataset.SOPClassUID != SegmentationStorage or dataset.Modality != "SEG":
+            raise ValueError("DICOM dataset is not a DICOM-SEG storage")
 
         result.dataset = dataset
         result.segment_infos = reader_utils.get_segment_map(dataset)
         result.spacing = reader_utils.get_declared_image_spacing(dataset)
         result.direction = reader_utils.get_image_direction(dataset)
         result.direction.flags.writeable = False
-        result.origin, extent = reader_utils.get_image_origin_and_extent(dataset, result.direction)
-        result.size = (dataset.Columns, dataset.Rows, int(np.ceil(extent / result.spacing[-1]) + 1))
+        result.origin, extent = reader_utils.get_image_origin_and_extent(
+            dataset, result.direction
+        )
+        result.size = (
+            dataset.Columns,
+            dataset.Rows,
+            int(np.ceil(extent / result.spacing[-1]) + 1),
+        )
 
 
 class SegmentReader(_ReaderBase):
@@ -141,6 +144,7 @@ class SegmentReader(_ReaderBase):
             data = result.segment_data(1)  # numpy array
             image = result.segment_image(1)  # SimpleITK image
     """
+
     def read(self, dataset: pydicom.Dataset) -> SegmentReadResult:
         result = SegmentReadResult()
         self._read_common(dataset, result)
@@ -164,22 +168,30 @@ class SegmentReader(_ReaderBase):
             dummy.SetSpacing(result.spacing)
             dummy.SetDirection(result.direction.ravel())
 
-            # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
-            shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
-            
+            # get segment ID sequence for the case it is the same for all frames (e.g. only one segment)
+            shared_sis = dataset.SharedFunctionalGroupsSequence[0].get(
+                "SegmentIdentificationSequence"
+            )
+
             # Iterate over all frames and check for referenced segment number
             for frame_idx, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-                sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+                sis = pffg.get(
+                    "SegmentIdentificationSequence", shared_sis
+                )  # shared_sis as default value
                 if segment_number != sis[0].ReferencedSegmentNumber:
-                        continue
-                        
-                frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
+                    continue
+
+                frame_position = [
+                    float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient
+                ]
                 frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
                 slice_data = frame_pixel_array[frame_idx]
 
                 # If it is fractional data, then convert to range [0, 1]
                 if segmentation_type == SegmentationType.FRACTIONAL:
-                    slice_data = slice_data.astype(dtype) / dataset.MaximumFractionalValue
+                    slice_data = (
+                        slice_data.astype(dtype) / dataset.MaximumFractionalValue
+                    )
 
                 segment_buffer[frame_index[2]] = slice_data
 
@@ -208,6 +220,7 @@ class MultiClassReader(_ReaderBase):
             data = result.data  # numpy array
             image = result.image  # SimpleITK image
     """
+
     def read(self, dataset: pydicom.Dataset) -> MultiClassReadResult:
         result = MultiClassReadResult()
         self._read_common(dataset, result)
@@ -215,18 +228,24 @@ class MultiClassReader(_ReaderBase):
         # Multi-class decoding assumes binary segmentations
         segmentation_type = SegmentationType(dataset.SegmentationType)
         if segmentation_type != SegmentationType.BINARY:
-            raise ValueError('Invalid segmentation type, only BINARY is supported for decoding multi-class segmentations.')
+            raise ValueError(
+                "Invalid segmentation type, only BINARY is supported for decoding multi-class segmentations."
+            )
 
         # Multi-class decoding requires non-overlapping segmentations
-        segments_overlap = dataset.get('SegmentsOverlap')
+        segments_overlap = dataset.get("SegmentsOverlap")
         if segments_overlap is None:
             segments_overlap = SegmentsOverlap.UNDEFINED
-            logger.warning('DICOM-SEG does not specify "(0062, 0013) SegmentsOverlap", assuming UNDEFINED and checking pixels')
+            logger.warning(
+                'DICOM-SEG does not specify "(0062, 0013) SegmentsOverlap", assuming UNDEFINED and checking pixels'
+            )
         else:
             segments_overlap = SegmentsOverlap(segments_overlap)
 
         if segments_overlap == SegmentsOverlap.YES:
-            raise ValueError('Segmentation contains overlapping segments, cannot read as multi-class.')
+            raise ValueError(
+                "Segmentation contains overlapping segments, cannot read as multi-class."
+            )
 
         # Choose suitable data format for multi-class segmentions, depending
         # on the number of segments
@@ -250,19 +269,30 @@ class MultiClassReader(_ReaderBase):
         frame_pixel_array = dataset.pixel_array
         if dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
             frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
-        
-        # get segment ID sequence for the case it is the same for all frames (e.g. only one segment) 
-        shared_sis = dataset.SharedFunctionalGroupsSequence[0].get('SegmentIdentificationSequence')
-        
+
+        # get segment ID sequence for the case it is the same for all frames (e.g. only one segment)
+        shared_sis = dataset.SharedFunctionalGroupsSequence[0].get(
+            "SegmentIdentificationSequence"
+        )
+
         # Iterate over all frames and update buffer with segment mask
         for frame_id, pffg in enumerate(dataset.PerFrameFunctionalGroupsSequence):
-            sis = pffg.get('SegmentIdentificationSequence', shared_sis) # shared_sis as default value
+            sis = pffg.get(
+                "SegmentIdentificationSequence", shared_sis
+            )  # shared_sis as default value
             referenced_segment_number = sis[0].ReferencedSegmentNumber
-            frame_position = [float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient]
+            frame_position = [
+                float(x) for x in pffg.PlanePositionSequence[0].ImagePositionPatient
+            ]
             frame_index = dummy.TransformPhysicalPointToIndex(frame_position)
             binary_mask = np.greater(frame_pixel_array[frame_id], 0)
-            if segments_overlap == SegmentsOverlap.UNDEFINED and segment_buffer[frame_index[2]][binary_mask].any():
-                raise ValueError('Segments are overlapping, cannot decode as multi-class segmentation.')
+            if (
+                segments_overlap == SegmentsOverlap.UNDEFINED
+                and segment_buffer[frame_index[2]][binary_mask].any()
+            ):
+                raise ValueError(
+                    "Segments are overlapping, cannot decode as multi-class segmentation."
+                )
             segment_buffer[frame_index[2]][binary_mask] = referenced_segment_number
 
         # Construct final SimpleITK image from numpy array
