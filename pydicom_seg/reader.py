@@ -198,7 +198,7 @@ class SegmentReader(_ReaderBase):
 
                 segment_buffer[frame_index[2]] = slice_data
 
-            result._segment_data[segment_number] = segment_buffer.copy()
+            result._segment_data[segment_number] = segment_buffer
 
         return result
 
