@@ -153,7 +153,6 @@ class SegmentReader(_ReaderBase):
         # as intermediate buffer and create an image afterwards
         segmentation_type = SegmentationType[dataset.SegmentationType]
         dtype = np.uint8 if segmentation_type == SegmentationType.BINARY else np.float32
-        segment_buffer = np.zeros(result.size[::-1], dtype=dtype)
 
         # pydicom decodes single-frame pixel data without a frame dimension
         frame_pixel_array = dataset.pixel_array
@@ -162,6 +161,10 @@ class SegmentReader(_ReaderBase):
 
         result._segment_data = {}
         for segment_number in result.segment_infos:
+            # Segment buffer should be cleared for each segment since
+            # segments may have different number of frames!
+            segment_buffer = np.zeros(result.size[::-1], dtype=dtype)
+
             # Dummy image for computing indices from physical points
             dummy = sitk.Image(1, 1, 1, sitk.sitkUInt8)
             dummy.SetOrigin(result.origin)
@@ -195,7 +198,7 @@ class SegmentReader(_ReaderBase):
 
                 segment_buffer[frame_index[2]] = slice_data
 
-            result._segment_data[segment_number] = segment_buffer.copy()
+            result._segment_data[segment_number] = segment_buffer
 
         return result
 
