@@ -164,6 +164,7 @@ class SegmentReader(_ReaderBase):
             # Segment buffer should be cleared for each segment since
             # segments may have different number of frames!
             segment_buffer = np.zeros(result.size[::-1], dtype=dtype)
+
             # Dummy image for computing indices from physical points
             dummy = sitk.Image(1, 1, 1, sitk.sitkUInt8)
             dummy.SetOrigin(result.origin)
