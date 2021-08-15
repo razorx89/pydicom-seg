@@ -80,7 +80,9 @@ def _create_segment_dataset(data: dict) -> pydicom.Dataset:
     ]
     for code_sequence in optional_code_sequences:
         if code_sequence in data:
-            dataset.__setattr__(code_sequence, data[code_sequence])
+            dataset.__setattr__(
+                code_sequence, _create_code_sequence(data[code_sequence])
+            )
 
     optional_tags_no_default = [
         "SegmentDescription",
