@@ -39,7 +39,8 @@ def get_declared_image_spacing(dataset: pydicom.Dataset) -> Tuple[float, float, 
         raise ValueError("Pixel measures FG is missing!")
 
     pixel_measures = sfg.PixelMeasuresSequence[0]
-    x_spacing, y_spacing = pixel_measures.PixelSpacing
+    # DICOM defines (row spacing, column spacing) -> (y, x)
+    y_spacing, x_spacing = pixel_measures.PixelSpacing
     if "SpacingBetweenSlices" in pixel_measures:
         z_spacing = pixel_measures.SpacingBetweenSlices
     else:
