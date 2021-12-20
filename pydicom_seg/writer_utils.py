@@ -141,13 +141,13 @@ def import_hierarchy(
 def set_shared_functional_groups_sequence(
     target: pydicom.Dataset, segmentation: sitk.Image
 ) -> None:
-    spacing = segmentation.GetSpacing()
+    sx, sy, sz = segmentation.GetSpacing()
 
     dataset = pydicom.Dataset()
     dataset.PixelMeasuresSequence = [pydicom.Dataset()]
-    dataset.PixelMeasuresSequence[0].PixelSpacing = [f"{x:e}" for x in spacing[:2]]
-    dataset.PixelMeasuresSequence[0].SliceThickness = f"{spacing[2]:e}"
-    dataset.PixelMeasuresSequence[0].SpacingBetweenSlices = f"{spacing[2]:e}"
+    dataset.PixelMeasuresSequence[0].PixelSpacing = [f"{sy:e}", f"{sx:e}"]
+    dataset.PixelMeasuresSequence[0].SliceThickness = f"{sz:e}"
+    dataset.PixelMeasuresSequence[0].SpacingBetweenSlices = f"{sz:e}"
     dataset.PlaneOrientationSequence = [pydicom.Dataset()]
     dataset.PlaneOrientationSequence[
         0
