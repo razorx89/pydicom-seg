@@ -1,8 +1,8 @@
 import abc
 import logging
+from dataclasses import dataclass
 from typing import Dict, List, Set
 
-import attr
 import numpy as np
 import pydicom
 import SimpleITK as sitk
@@ -14,8 +14,7 @@ from pydicom_seg.segmentation_dataset import SegmentationType, SegmentsOverlap
 logger = logging.getLogger(__name__)
 
 
-# TODO Improve attrs/type-hint usage. pylint produces a lot of false-positives
-@attr.s(init=False)
+@dataclass(init=False)
 class _ReadResultBase:
     """Base data class for read results.
 
@@ -23,12 +22,12 @@ class _ReadResultBase:
     voxel spacing and the direction matrix.
     """
 
-    dataset: pydicom.Dataset = attr.ib()
-    direction: np.ndarray = attr.ib()
-    origin: tuple = attr.ib()
-    segment_infos: Dict[int, pydicom.Dataset] = attr.ib()
-    size: tuple = attr.ib()
-    spacing: tuple = attr.ib()
+    dataset: pydicom.Dataset
+    direction: np.ndarray
+    origin: tuple
+    segment_infos: Dict[int, pydicom.Dataset]
+    size: tuple
+    spacing: tuple
 
     @property
     def referenced_series_uid(self) -> str:
@@ -43,11 +42,11 @@ class _ReadResultBase:
         ]
 
 
-@attr.s(init=False)
+@dataclass(init=False)
 class SegmentReadResult(_ReadResultBase):
     """Read result for segment-based decoding of DICOM-SEGs."""
 
-    _segment_data: Dict[int, np.ndarray] = attr.ib()
+    _segment_data: Dict[int, np.ndarray]
 
     @property
     def available_segments(self) -> Set[int]:
@@ -64,10 +63,11 @@ class SegmentReadResult(_ReadResultBase):
         return result
 
 
+@dataclass(init=False)
 class MultiClassReadResult(_ReadResultBase):
     """Read result for multi-class decoding of DICOM-SEGs."""
 
-    data: np.ndarray = attr.ib()
+    data: np.ndarray
 
     @property
     def image(self) -> sitk.Image:
