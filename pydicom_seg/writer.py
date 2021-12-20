@@ -197,6 +197,7 @@ class MultiClassWriter:
                     data=frame_data.astype(np.uint8),
                     referenced_segment=segment,
                     referenced_images=slice_to_source_images[slice_idx],
+                    update_pixel_data=False,
                 )
 
                 frame_fg_item.FrameContentSequence = [pydicom.Dataset()]
@@ -214,6 +215,9 @@ class MultiClassWriter:
                     f"Skipped empty slices for segment {segment}: "
                     f'{", ".join([str(x) for x in skipped_slices])}'
                 )
+
+        # Update pixel data after adding all frames to increase speed
+        result.update_pixel_data()
 
         # Encode all frames into a bytearray
         if self._inplane_cropping or self._skip_empty_slices:

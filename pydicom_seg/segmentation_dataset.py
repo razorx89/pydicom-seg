@@ -197,6 +197,20 @@ class SegmentationDataset(pydicom.Dataset):
             pydicom.filewriter.write_dataset(buffer, self.file_meta)
             self.file_meta.FileMetaInformationGroupLength = buffer.tell()
 
+    def update_pixel_data(self) -> None:
+        """Replaces the pixel data using the list of frames.
+
+        This methods replaces the (0x7fe0, 0x0010) Pixel Data by using the
+        prestored frames. If this method is called after adding every frame,
+        it can be slow. To speed up, disable it and call this method after
+        finishing adding frames.
+        """
+        raw_pixel_data = np.concatenate(self._frames)
+        if self.SegmentationType == SegmentationType.BINARY.value:
+            self.PixelData = np.packbits(raw_pixel_data, bitorder="little").tobytes()
+        else:
+            self.PixelData = raw_pixel_data.tobytes()
+
     def add_dimension_organization(
         self, dim_organization: DimensionOrganizationSequence
     ) -> None:
@@ -234,6 +248,7 @@ class SegmentationDataset(pydicom.Dataset):
         data: np.ndarray,
         referenced_segment: int,
         referenced_images: List[pydicom.Dataset] = None,
+        update_pixel_data: bool = True,
     ) -> pydicom.Dataset:
         """Adds a frame to the dataset.
 
@@ -250,6 +265,10 @@ class SegmentationDataset(pydicom.Dataset):
                 SegmentSequence.
             referenced_images: A list of `pydicom.Dataset` source images, which
                 map to the frame.
+            update_pixel_data: a boolean indicating whether the pixeldata
+                should be updated right after adding the frame. Otherwise
+                update_pixel_data() has to be called after adding all frames.
+                Calling update_pixel_data() once at the end increases speed.
 
         Returns:
             A `pydicom.Dataset` with pre-initialized values for an item in
@@ -275,10 +294,6 @@ class SegmentationDataset(pydicom.Dataset):
                 )
             data = np.greater(data, 0, dtype=np.uint8)
 
-            self._frames.append(data)
-            self.PixelData = np.packbits(
-                np.ravel(self._frames), bitorder="little"
-            ).tobytes()
         else:
             if not np.issubdtype(data.dtype, np.floating):
                 raise ValueError(
@@ -288,8 +303,11 @@ class SegmentationDataset(pydicom.Dataset):
             data *= self.MaximumFractionalValue
             data = data.astype(np.uint8)
 
-            self._frames.append(data.ravel())
-            self.PixelData = np.concatenate(self._frames).tobytes()
+        self._frames.append(data.ravel())
+
+        # Update PixelData if required, otherwise it must be done after adding all frames
+        if update_pixel_data:
+            self.update_pixel_data()
 
         # A frame was added to the dataset
         self.NumberOfFrames += 1
