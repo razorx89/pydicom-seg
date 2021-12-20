@@ -121,7 +121,7 @@ class _ReaderBase(abc.ABC):
         result.size = (
             dataset.Columns,
             dataset.Rows,
-            int(np.ceil(extent / result.spacing[-1]) + 1),
+            int(np.rint(extent / result.spacing[-1])) + 1,
         )
 
 
