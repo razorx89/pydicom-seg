@@ -1,7 +1,7 @@
 import abc
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 import numpy as np
 import pydicom
@@ -24,10 +24,10 @@ class _ReadResultBase:
 
     dataset: pydicom.Dataset
     direction: np.ndarray
-    origin: tuple
+    origin: Tuple[float, ...]
     segment_infos: Dict[int, pydicom.Dataset]
-    size: tuple
-    spacing: tuple
+    size: Tuple[int, ...]
+    spacing: Tuple[float, ...]
 
     @property
     def referenced_series_uid(self) -> str:
