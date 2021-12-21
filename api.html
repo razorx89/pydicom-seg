@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>API Reference &mdash; pydicom-seg 0.2.0-dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="Writing DICOM-SEG" href="guides/write.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pydicom-seg
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides/index.html">Usage Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pydicom-seg</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>API Reference</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/razorx89/pydicom-seg/blob/master/docs/api.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="api-reference">
+<span id="api"></span><h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pydicom_seg.MultiClassReader">
+<em class="property">class </em><code class="sig-prename descclassname">pydicom_seg.</code><code class="sig-name descname">MultiClassReader</code><a class="headerlink" href="#pydicom_seg.MultiClassReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydicom_seg.reader._ReaderBase</span></code></p>
+<p>Reads multi-class segmentations from a DICOM-SEG file.</p>
+<p>If all segments in a DICOM-SEG don’t overlap, then it is save to reduce <cite>n</cite>
+binary segmentations to a single segmentation with an integer index for the
+referenced segment at the spatial location. This is a common use-case,
+especially in computer vision applications, for analysing different regions
+in medical imaging. The read operation creates a <cite>MultiClassReadResult</cite>
+object with information about the spatial location and extent, as well as
+the multi-class segmentation data.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dcm</span> <span class="o">=</span> <span class="n">pydicom</span><span class="o">.</span><span class="n">dcmread</span><span class="p">(</span><span class="s1">&#39;segmentation.dcm&#39;</span><span class="p">)</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">pydicom_seg</span><span class="o">.</span><span class="n">MultiClassReader</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">dcm</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span>  <span class="c1"># numpy array</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">image</span>  <span class="c1"># SimpleITK image</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="pydicom_seg.MultiClassReader.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">dataset: pydicom.dataset.Dataset</em><span class="sig-paren">)</span> &#x2192; pydicom_seg.reader.MultiClassReadResult<a class="headerlink" href="#pydicom_seg.MultiClassReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read from a DICOM-SEG file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataset</strong> – A <cite>pydicom.Dataset</cite> with DICOM-SEG content.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result object with decoded numpy data and common information about
+the spatial location and extent of the volume.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pydicom_seg.MultiClassWriter">
+<em class="property">class </em><code class="sig-prename descclassname">pydicom_seg.</code><code class="sig-name descname">MultiClassWriter</code><span class="sig-paren">(</span><em class="sig-param">template: pydicom.dataset.Dataset</em>, <em class="sig-param">inplane_cropping: bool = False</em>, <em class="sig-param">skip_empty_slices: bool = True</em>, <em class="sig-param">skip_missing_segment: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#pydicom_seg.MultiClassWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Writer for DICOM-SEG files from multi-class segmentations.</p>
+<p>Writing DICOM-SEGs can be optimized in respect to the required disk
+space. Empty slices/frames of a 3D volume, containing only zeros, can
+be omitted from the frame sequence. Furthermore, the segmentation might
+only span a small area in a slice and thus can be cropped to the
+minimal enclosing bounding box.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">segmentation</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># A multi-class segmentation as SimpleITK image</span>
+<span class="n">series_dcms</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># List of `pydicom.Dataset`s related to the segmentation</span>
+
+<span class="n">template</span> <span class="o">=</span> <span class="n">pydicom_seg</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">from_dcmqi_metainfo</span><span class="p">(</span><span class="s1">&#39;metainfo.json&#39;</span><span class="p">)</span>
+<span class="n">writer</span> <span class="o">=</span> <span class="n">MultiClassWriter</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+<span class="n">dcm</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">segmentation</span><span class="p">,</span> <span class="n">series_dcms</span><span class="p">)</span>
+<span class="n">dcm</span><span class="o">.</span><span class="n">save_as</span><span class="p">(</span><span class="s1">&#39;&lt;path&gt;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>template</strong> – A <cite>pydicom.Dataset</cite> holding all relevant meta information
+about the DICOM-SEG series. It has the same meaning as the
+<cite>metainfo.json</cite> file for the dcmqi binaries.</p></li>
+<li><p><strong>inplane_cropping</strong> – If enabled, slices will be cropped (Rows/Columns)
+to the minimum enclosing boundingbox of all labels across all
+slices. Warning: This is an experimental feature and might not
+be supported when decoding with other frameworks / DICOM viewers.</p></li>
+<li><p><strong>skip_empty_slices</strong> – If enabled, empty slices with only zeros
+(background label) will be ommited from the DICOM-SEG.</p></li>
+<li><p><strong>skip_missing_segment</strong> – If enabled, just emit a warning if segment
+information is missing in the template for a specific label.
+The segment won’t be included in the final DICOM-SEG.
+Otherwise, the encoding is aborted if segment information is
+missing.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pydicom_seg.MultiClassWriter.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param">segmentation: SimpleITK.SimpleITK.Image, source_images: List[Union[pydicom.dataset.Dataset, bytes, str, os.PathLike]]</em><span class="sig-paren">)</span> &#x2192; pydicom.dataset.Dataset<a class="headerlink" href="#pydicom_seg.MultiClassWriter.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a DICOM-SEG dataset from a segmentation image and the
+corresponding DICOM source images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>segmentation</strong> – A <cite>SimpleITK.Image</cite> with integer labels and a single
+component per spatial location.</p></li>
+<li><p><strong>source_images</strong> – A list of <cite>pydicom.Dataset</cite> which are the
+source images for the segmentation image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <cite>pydicom.Dataset</cite> instance with all necessary information and
+meta information for writing the dataset to disk.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pydicom_seg.SegmentReader">
+<em class="property">class </em><code class="sig-prename descclassname">pydicom_seg.</code><code class="sig-name descname">SegmentReader</code><a class="headerlink" href="#pydicom_seg.SegmentReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydicom_seg.reader._ReaderBase</span></code></p>
+<p>Reads binary segments from a DICOM-SEG file.</p>
+<p>All segments in a DICOM-SEG file cover the same spatial extent, but might
+overlap. If a user wants to use each segment individually as a binary
+segmentation, then this reader extracts all segments as individual numpy
+arrays. The read operation creates a <cite>SegmentReadResult</cite> object with common
+information about the spatial location and extent shared by all segments,
+as well as the binary segmentation data for each segment.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dcm</span> <span class="o">=</span> <span class="n">pydicom</span><span class="o">.</span><span class="n">dcmread</span><span class="p">(</span><span class="s1">&#39;segmentation.dcm&#39;</span><span class="p">)</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">pydicom_seg</span><span class="o">.</span><span class="n">SegmentReader</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">dcm</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">segment_data</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># numpy array</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">segment_image</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># SimpleITK image</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="pydicom_seg.SegmentReader.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">dataset: pydicom.dataset.Dataset</em><span class="sig-paren">)</span> &#x2192; pydicom_seg.reader.SegmentReadResult<a class="headerlink" href="#pydicom_seg.SegmentReader.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read from a DICOM-SEG file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataset</strong> – A <cite>pydicom.Dataset</cite> with DICOM-SEG content.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Result object with decoded numpy data and common information about
+the spatial location and extent of the volume.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pydicom_seg.reader.SegmentReadResult">
+<em class="property">class </em><code class="sig-prename descclassname">pydicom_seg.reader.</code><code class="sig-name descname">SegmentReadResult</code><a class="headerlink" href="#pydicom_seg.reader.SegmentReadResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pydicom_seg.reader._ReadResultBase" title="pydicom_seg.reader._ReadResultBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pydicom_seg.reader._ReadResultBase</span></code></a></p>
+<p>Read result for segment-based decoding of DICOM-SEGs.</p>
+<dl class="method">
+<dt id="pydicom_seg.reader.SegmentReadResult.available_segments">
+<em class="property">property </em><code class="sig-name descname">available_segments</code><a class="headerlink" href="#pydicom_seg.reader.SegmentReadResult.available_segments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pydicom_seg.reader.SegmentReadResult.segment_data">
+<code class="sig-name descname">segment_data</code><span class="sig-paren">(</span><em class="sig-param">number: int</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#pydicom_seg.reader.SegmentReadResult.segment_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pydicom_seg.reader.SegmentReadResult.segment_image">
+<code class="sig-name descname">segment_image</code><span class="sig-paren">(</span><em class="sig-param">number: int</em><span class="sig-paren">)</span> &#x2192; SimpleITK.SimpleITK.Image<a class="headerlink" href="#pydicom_seg.reader.SegmentReadResult.segment_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pydicom_seg.reader.MultiClassReadResult">
+<em class="property">class </em><code class="sig-prename descclassname">pydicom_seg.reader.</code><code class="sig-name descname">MultiClassReadResult</code><a class="headerlink" href="#pydicom_seg.reader.MultiClassReadResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pydicom_seg.reader._ReadResultBase" title="pydicom_seg.reader._ReadResultBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pydicom_seg.reader._ReadResultBase</span></code></a></p>
+<p>Read result for multi-class decoding of DICOM-SEGs.</p>
+<dl class="attribute">
+<dt id="pydicom_seg.reader.MultiClassReadResult.data">
+<code class="sig-name descname">data</code><em class="property">: np.ndarray</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader.MultiClassReadResult.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pydicom_seg.reader.MultiClassReadResult.image">
+<em class="property">property </em><code class="sig-name descname">image</code><a class="headerlink" href="#pydicom_seg.reader.MultiClassReadResult.image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pydicom_seg.reader._ReadResultBase">
+<em class="property">class </em><code class="sig-prename descclassname">pydicom_seg.reader.</code><code class="sig-name descname">_ReadResultBase</code><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base data class for read results.</p>
+<p>Contains common information about a decoded segmentation, e.g. origin,
+voxel spacing and the direction matrix.</p>
+<dl class="attribute">
+<dt id="pydicom_seg.reader._ReadResultBase.dataset">
+<code class="sig-name descname">dataset</code><em class="property">: pydicom.Dataset</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pydicom_seg.reader._ReadResultBase.direction">
+<code class="sig-name descname">direction</code><em class="property">: np.ndarray</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.direction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pydicom_seg.reader._ReadResultBase.origin">
+<code class="sig-name descname">origin</code><em class="property">: Tuple[float, ...]</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.origin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pydicom_seg.reader._ReadResultBase.referenced_instance_uids">
+<em class="property">property </em><code class="sig-name descname">referenced_instance_uids</code><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.referenced_instance_uids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pydicom_seg.reader._ReadResultBase.referenced_series_uid">
+<em class="property">property </em><code class="sig-name descname">referenced_series_uid</code><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.referenced_series_uid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pydicom_seg.reader._ReadResultBase.segment_infos">
+<code class="sig-name descname">segment_infos</code><em class="property">: Dict[int, pydicom.Dataset]</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.segment_infos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pydicom_seg.reader._ReadResultBase.size">
+<code class="sig-name descname">size</code><em class="property">: Tuple[int, ...]</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pydicom_seg.reader._ReadResultBase.spacing">
+<code class="sig-name descname">spacing</code><em class="property">: Tuple[float, ...]</em><em class="property"> = None</em><a class="headerlink" href="#pydicom_seg.reader._ReadResultBase.spacing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pydicom_seg.template.from_dcmqi_metainfo">
+<code class="sig-prename descclassname">pydicom_seg.template.</code><code class="sig-name descname">from_dcmqi_metainfo</code><span class="sig-paren">(</span><em class="sig-param">metainfo: Union[dict, bytes, str, os.PathLike]</em><span class="sig-paren">)</span> &#x2192; pydicom.dataset.Dataset<a class="headerlink" href="#pydicom_seg.template.from_dcmqi_metainfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a <cite>metainfo.json</cite> file from the dcmqi project to a
+<cite>pydicom.Dataset</cite> with the matching DICOM data elements set from JSON.</p>
+<p>Those JSON files can be easilly created using the segmentation editor
+tool from QIICR/dcmqi:
+<a class="reference external" href="http://qiicr.org/dcmqi/#/seg">http://qiicr.org/dcmqi/#/seg</a>
+When converting the JSON to a DICOM dataset, the validity of the provided
+JSON document is ensured using the official JSON schema files from the
+dcmqi project.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metainfo</strong> – Either a <cite>str</cite> for a file path to read from or a <cite>dict</cite>
+with the JSON already imported or constructed in source code.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A <cite>pydicom.Dataset</cite> containg all values from the JSON document and
+some defaults if the elements were not available.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="guides/write.html" class="btn btn-neutral float-left" title="Writing DICOM-SEG" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019-2020, Sven Koitka
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Writing DICOM-SEG &mdash; pydicom-seg 0.2.0-dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api.html" />
+    <link rel="prev" title="Reading DICOM-SEG" href="read.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pydicom-seg
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="seg_types.html">Segmentation Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read.html">Reading DICOM-SEG</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Writing DICOM-SEG</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#templates">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-class-segmentations">Multi-class segmentations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exemplary-workflow">Exemplary Workflow</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pydicom-seg</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Usage Guide</a> &raquo;</li>
+        
+      <li>Writing DICOM-SEG</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            
+              <a href="https://github.com/razorx89/pydicom-seg/blob/master/docs/guides/write.rst" class="fa fa-github"> Edit on GitHub</a>
+            
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="writing-dicom-seg">
+<h1>Writing DICOM-SEG<a class="headerlink" href="#writing-dicom-seg" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pydicom</span>
+<span class="kn">import</span> <span class="nn">pydicom_seg</span>
+<span class="kn">import</span> <span class="nn">SimpleITK</span> <span class="k">as</span> <span class="nn">sitk</span>
+</pre></div>
+</div>
+<div class="section" id="templates">
+<h2>Templates<a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h2>
+<p>For writing DICOM-SEG files, some information besides the segmentation data is
+needed in order to fully comply to the DICOM standard. On the one hand, some
+information about the content creator and series level DICOM data elements need
+to be specified. On the other hand, each segment to encode has to be specified
+including codes for automatical identification of the segmented tissue.</p>
+<p>Since this is normally done in advance, before creating DICOM-SEGs
+automatically, it is recommended to use the <a class="reference external" href="http://qiicr.org/dcmqi/#/seg">web-based editor</a>
+from the <a class="reference external" href="https://github.com/QIICR/dcmqi">dcmqi</a> project. The resulting
+<code class="docutils literal notranslate"><span class="pre">metainfo.json</span></code> file can be loaded using a compatibility importer function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">template</span> <span class="o">=</span> <span class="n">pydicom_seg</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">from_dcmqi_metainfo</span><span class="p">(</span><span class="s1">&#39;metainfo.json&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="multi-class-segmentations">
+<h2>Multi-class segmentations<a class="headerlink" href="#multi-class-segmentations" title="Permalink to this headline">¶</a></h2>
+<p>Multi-class segmentations can be written using the <code class="docutils literal notranslate"><span class="pre">MultiClassWriter</span></code>, which
+has a few customization options available. These options can drastically reduce
+the generated file size if the segmentation data is very sparse.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">writer</span> <span class="o">=</span> <span class="n">pydicom_seg</span><span class="o">.</span><span class="n">MultiClassWriter</span><span class="p">(</span>
+    <span class="n">template</span><span class="o">=</span><span class="n">template</span><span class="p">,</span>
+    <span class="n">inplane_cropping</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Crop image slices to the minimum bounding box on</span>
+                            <span class="c1"># x and y axes</span>
+    <span class="n">skip_empty_slices</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Don&#39;t encode slices with only zeros</span>
+    <span class="n">skip_missing_segment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># If a segment definition is missing in the</span>
+                                 <span class="c1"># template, then raise an error instead of</span>
+                                 <span class="c1"># skipping it.</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Inplane cropping is performed over all segments present in the segmentation
+data. Since the DICOM standard requires encoded frames to have all the same
+size, the minimum bounding box of all segments is calculated for the x and
+y axes.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Inplane cropping is an experimental feature and might not be supported by other
+frameworks or DICOM viewers.</p>
+</div>
+<p>If enabled, slices which have no annotation present for a given segment can
+be skipped during encoding. This results in smaller file sizes, because
+otherwise a frame would be encoded with only zero values.</p>
+</div>
+<div class="section" id="exemplary-workflow">
+<h2>Exemplary Workflow<a class="headerlink" href="#exemplary-workflow" title="Permalink to this headline">¶</a></h2>
+<p>In order to illustrate the creation of a DICOM-SEG from segmentation data, a
+typical image analysis workflow is shown in the following. First, an image is
+loaded from disk as a <code class="docutils literal notranslate"><span class="pre">SimpleITK.Image</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">ImageSeriesReader</span><span class="p">()</span>
+<span class="n">dcm_files</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">GetGDCMSeriesFileNames</span><span class="p">(</span><span class="s1">&#39;dir/to/study&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;SeriesInstanceUID&gt;&#39;</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">SetFileNames</span><span class="p">(</span><span class="n">dcm_files</span><span class="p">)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">Execute</span><span class="p">()</span>
+<span class="n">image_data</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetArrayFromImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point some kind of image processing is taking place, maybe a semantic
+segmentation neural network is applied in order to get the segmentation data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">segmentation_data</span> <span class="o">=</span> <span class="n">process_image</span><span class="p">(</span><span class="n">image_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Since <code class="docutils literal notranslate"><span class="pre">pydicom_seg</span></code> expects a <code class="docutils literal notranslate"><span class="pre">SimpleITK.Image</span></code> as input to the writer, the
+segmentation data needs to be encapsulated with all relevant information about
+the image grid. This is very important for encoding the segments and
+referencing the corresponding source DICOM files.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">segmentation</span> <span class="o">=</span> <span class="n">sitk</span><span class="o">.</span><span class="n">GetImageFromArray</span><span class="p">(</span><span class="n">segmentation_data</span><span class="p">)</span>
+<span class="n">segmentation</span><span class="o">.</span><span class="n">CopyInformation</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, the actual creation of the DICOM-SEG can be performed. Therefore the
+source DICOM files need to be loaded with <code class="docutils literal notranslate"><span class="pre">pydicom</span></code>, but for optimization
+purposes the pixel data can be skipped.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">source_images</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">pydicom</span><span class="o">.</span><span class="n">dcmread</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stop_before_pixels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dcm_files</span>
+<span class="p">]</span>
+<span class="n">dcm</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">segmentation</span><span class="p">,</span> <span class="n">source_images</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, the file paths can be provided directly to the <code class="docutils literal notranslate"><span class="pre">write</span></code> method,
+if no further access to the raw DICOM datasets is required by the user.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dcm</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">segmentation</span><span class="p">,</span> <span class="n">dcm_files</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The created DICOM dataset can now also be modified, e.g. setting some custom
+UIDs instead of random generated UIDs, or private tags with additional
+data. Lastly, the dataset can be stored on disk:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dcm</span><span class="o">.</span><span class="n">save_as</span><span class="p">(</span><span class="s1">&#39;segmentation.dcm&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or the dataset can be directly stored in a research PACS (e.g.
+<a class="reference external" href="https://www.orthanc-server.com/">Orthanc</a>) using DICOM-Web technology and
+the Python package <a class="reference external" href="https://github.com/MGHComputationalPathology/dicomweb-client">dicomweb-client</a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dicomweb_client.api</span> <span class="kn">import</span> <span class="n">DICOMwebClient</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">DICOMwebClient</span><span class="p">(</span><span class="s1">&#39;https://&lt;some-pacs-server&gt;&#39;</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">store_instances</span><span class="p">(</span><span class="n">datasets</span><span class="o">=</span><span class="p">[</span><span class="n">dcm</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="read.html" class="btn btn-neutral float-left" title="Reading DICOM-SEG" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019-2020, Sven Koitka
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
