@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import pydicom
@@ -8,6 +8,7 @@ import SimpleITK as sitk
 from pydicom_seg import writer_utils
 from pydicom_seg.dicom_utils import DimensionOrganizationSequence
 from pydicom_seg.segmentation_dataset import SegmentationDataset, SegmentationType
+from pydicom_seg.typing import FSPath
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,9 @@ class MultiClassWriter:
         self._template = template
 
     def write(
-        self, segmentation: sitk.Image, source_images: List[pydicom.Dataset]
+        self,
+        segmentation: sitk.Image,
+        source_images: List[Union[pydicom.Dataset, FSPath]],
     ) -> pydicom.Dataset:
         """Writes a DICOM-SEG dataset from a segmentation image and the
         corresponding DICOM source images.
@@ -95,8 +98,9 @@ class MultiClassWriter:
             raise ValueError("Unsigned integer data type required")
 
         # TODO Add further checks if source images are from the same series
+        source_dcms = self._normalize_source_images(source_images)
         slice_to_source_images = self._map_source_images_to_segmentation(
-            segmentation, source_images
+            segmentation, source_dcms
         )
 
         # Compute unique labels and their respective bounding boxes
@@ -145,7 +149,7 @@ class MultiClassWriter:
 
         # Create target dataset for storing serialized data
         result = SegmentationDataset(
-            reference_dicom=source_images[0] if source_images else None,
+            reference_dicom=source_dcms[0] if source_dcms else None,
             rows=max_y - min_y,
             columns=max_x - min_x,
             segmentation_type=SegmentationType.BINARY,
@@ -237,6 +241,28 @@ class MultiClassWriter:
 
         result.SegmentsOverlap = "NO"
 
+        return result
+
+    def _normalize_source_images(
+        self, dcms_or_paths: List[Union[pydicom.Dataset, FSPath]]
+    ) -> List[pydicom.Dataset]:
+        """Load DICOM from any given path and normalize the data structure to
+        only pydicom Datasets.
+
+        Args:
+            dcms_or_paths: A list of `pydicom.Dataset`s and/or filesystem paths.
+
+        Returns:
+            A list with only `pydicom.Dataset`s.
+        """
+        result: List[pydicom.Dataset] = []
+        for elem in dcms_or_paths:
+            if isinstance(elem, pydicom.Dataset):
+                result.append(elem)
+            else:
+                # TODO Load only required tags for writing DICOM-SEG
+                dcm = pydicom.dcmread(elem, stop_before_pixels=True)
+                result.append(dcm)
         return result
 
     def _map_source_images_to_segmentation(

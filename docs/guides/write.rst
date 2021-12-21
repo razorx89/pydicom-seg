@@ -103,6 +103,13 @@ purposes the pixel data can be skipped.
     ]
     dcm = writer.write(segmentation, source_images)
 
+Alternatively, the file paths can be provided directly to the ``write`` method,
+if no further access to the raw DICOM datasets is required by the user.
+
+.. code-block:: python
+
+    dcm = writer.write(segmentation, dcm_files)
+
 The created DICOM dataset can now also be modified, e.g. setting some custom
 UIDs instead of random generated UIDs, or private tags with additional
 data. Lastly, the dataset can be stored on disk:

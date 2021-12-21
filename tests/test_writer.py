@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import numpy as np
 import pydicom
@@ -238,3 +239,22 @@ class TestMultiClassWriter:
         ds = writer.write(segmentation, [dummy_dcm])
 
         assert ds.FrameOfReferenceUID == dummy_dcm.FrameOfReferenceUID
+
+    def test_filesystem_path_for_source_image(self) -> None:
+        data = np.ones((1, 512, 512), dtype=np.uint8)
+        segmentation = sitk.GetImageFromArray(data)
+        writer = MultiClassWriter(self.template)
+
+        dcm_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "pydicom_seg",
+            "externals",
+            "dcmqi",
+            "data",
+            "segmentations",
+            "ct-3slice",
+            "01.dcm",
+        )
+
+        _ = writer.write(segmentation, [dcm_path])
+        _ = writer.write(segmentation, [pathlib.Path(dcm_path)])
