@@ -60,3 +60,15 @@ class TestTemplate:
         assert seq[0].CodeValue == "1234567"
         assert seq[0].CodingSchemeDesignator == "SCT"
         assert seq[0].CodeMeaning == "DUMMY"
+
+    def test_pathlib(self) -> None:
+        path = (
+            pathlib.Path(__file__).parent.parent
+            / "pydicom_seg"
+            / "externals"
+            / "dcmqi"
+            / "doc"
+            / "examples"
+            / "seg-example_multiple_segments_single_input_file.json"
+        )
+        from_dcmqi_metainfo(path)

@@ -5,6 +5,8 @@ from typing import List, Union
 import jsonschema
 import pydicom
 
+from pydicom_seg.typing import FSPath
+
 
 def _create_validator() -> jsonschema.Draft4Validator:
     """Create a JSON validator instance from dcmqi schema files.
@@ -104,7 +106,7 @@ def _create_segment_dataset(data: dict) -> pydicom.Dataset:
     return dataset
 
 
-def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
+def from_dcmqi_metainfo(metainfo: Union[dict, FSPath]) -> pydicom.Dataset:
     """Converts a `metainfo.json` file from the dcmqi project to a
     `pydicom.Dataset` with the matching DICOM data elements set from JSON.
 
@@ -124,7 +126,7 @@ def from_dcmqi_metainfo(metainfo: Union[dict, str]) -> pydicom.Dataset:
         some defaults if the elements were not available.
     """
     # Add convienence loader of JSON dictionary
-    if isinstance(metainfo, str):
+    if not isinstance(metainfo, dict):
         with open(metainfo) as ifile:
             metainfo = json.load(ifile)
     assert isinstance(metainfo, dict)
