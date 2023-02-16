@@ -64,8 +64,8 @@ def dcm_to_sitk_orientation(iop: List[str]) -> np.ndarray:
     y_dir = [float(x) for x in iop[3:]]
 
     # L2 normalize x-vector and y-vector
-    x_dir /= np.linalg.norm(x_dir)
-    y_dir /= np.linalg.norm(y_dir)
+    x_dir /= np.linalg.norm(x_dir)  # type: ignore
+    y_dir /= np.linalg.norm(y_dir)  # type: ignore
 
     # Compute perpendicular z-vector
     z_dir = np.cross(x_dir, y_dir)

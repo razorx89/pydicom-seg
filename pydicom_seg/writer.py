@@ -134,9 +134,9 @@ class MultiClassWriter:
             x: label_statistics_filter.GetBoundingBox(x) for x in labels_to_process
         }
         if self._inplane_cropping:
-            min_x, min_y, _ = np.min([x[::2] for x in bboxs.values()], axis=0).tolist()
+            min_x, min_y, _ = np.min([x[::2] for x in bboxs.values()], axis=0).tolist()  # type: ignore
             max_x, max_y, _ = (
-                np.max([x[1::2] for x in bboxs.values()], axis=0) + 1
+                np.max([x[1::2] for x in bboxs.values()], axis=0) + 1  # type: ignore
             ).tolist()
             logger.info(
                 "Serializing cropped image planes starting at coordinates "
