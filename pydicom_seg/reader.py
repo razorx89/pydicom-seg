@@ -157,7 +157,7 @@ class SegmentReader(_ReaderBase):
         # pydicom decodes single-frame pixel data without a frame dimension
         frame_pixel_array = dataset.pixel_array
         if dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
-            frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
+            frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)  # type: ignore
 
         result._segment_data = {}
         for segment_number in result.segment_infos:
@@ -253,10 +253,7 @@ class MultiClassReader(_ReaderBase):
         # Choose suitable data format for multi-class segmentions, depending
         # on the number of segments
         max_segment_number = max(result.segment_infos.keys())
-        if max_segment_number < 256:
-            dtype = np.uint8
-        else:
-            dtype = np.uint16
+        dtype = np.uint8 if max_segment_number < 256 else np.uint16
 
         # SimpleITK has currently no support for writing slices into memory, allocate a numpy array
         # as intermediate buffer and create an image afterwards
@@ -271,7 +268,7 @@ class MultiClassReader(_ReaderBase):
         # pydicom decodes single-frame pixel data without a frame dimension
         frame_pixel_array = dataset.pixel_array
         if dataset.NumberOfFrames == 1 and len(frame_pixel_array.shape) == 2:
-            frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)
+            frame_pixel_array = np.expand_dims(frame_pixel_array, axis=0)  # type: ignore
 
         # get segment ID sequence for the case it is the same for all frames (e.g. only one segment)
         shared_sis = dataset.SharedFunctionalGroupsSequence[0].get(

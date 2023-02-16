@@ -32,7 +32,7 @@ jobs:
         poetry install
 
     - name: Run static type checking (mypy)
-      run: poetry run mypy pydicom_seg
+      run: poetry run mypy pydicom_seg --exclude pydicom_seg/external
 
     - name: Run test suite (pytest)
       run: poetry run pytest tests/
