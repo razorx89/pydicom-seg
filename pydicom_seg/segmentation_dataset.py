@@ -292,7 +292,7 @@ class SegmentationDataset(pydicom.Dataset):
                 raise ValueError(
                     "Binary segmentation data requires an integer data type"
                 )
-            data = np.greater(data, 0, dtype=np.uint8)
+            np.greater(data, 0, out=data)
 
         else:
             if not np.issubdtype(data.dtype, np.floating):
