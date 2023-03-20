@@ -205,7 +205,7 @@ class SegmentationDataset(pydicom.Dataset):
         it can be slow. To speed up, disable it and call this method after
         finishing adding frames.
         """
-        raw_pixel_data = np.concatenate(self._frames)
+        raw_pixel_data = np.concatenate(self._frames)  # type: ignore
         if self.SegmentationType == SegmentationType.BINARY.value:
             self.PixelData = np.packbits(raw_pixel_data, bitorder="little").tobytes()
         else:
@@ -247,7 +247,7 @@ class SegmentationDataset(pydicom.Dataset):
         self,
         data: np.ndarray,
         referenced_segment: int,
-        referenced_images: List[pydicom.Dataset] = None,
+        referenced_images: Optional[List[pydicom.Dataset]] = None,
         update_pixel_data: bool = True,
     ) -> pydicom.Dataset:
         """Adds a frame to the dataset.
@@ -292,7 +292,7 @@ class SegmentationDataset(pydicom.Dataset):
                 raise ValueError(
                     "Binary segmentation data requires an integer data type"
                 )
-            data = np.greater(data, 0, dtype=np.uint8)
+            np.greater(data, 0, out=data)
 
         else:
             if not np.issubdtype(data.dtype, np.floating):

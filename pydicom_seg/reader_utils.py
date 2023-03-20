@@ -79,7 +79,7 @@ def get_image_origin_and_extent(
         if frame_position in distances:
             continue
 
-        frame_distance = np.dot(frame_position - reference_position, slice_dir)
+        frame_distance = np.dot(frame_position - reference_position, slice_dir)  # type: ignore
         distances[frame_position] = frame_distance
 
         if frame_idx == 0 or frame_distance < min_distance:

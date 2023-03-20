@@ -10,7 +10,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python_version: [3.6, 3.7, 3.8]
+        python_version: [3.7, 3.8, 3.9]
 
     runs-on: ubuntu-latest
 
@@ -32,7 +32,7 @@ jobs:
         poetry install
 
     - name: Run static type checking (mypy)
-      run: poetry run mypy pydicom_seg
+      run: poetry run mypy pydicom_seg --exclude pydicom_seg/external
 
     - name: Run test suite (pytest)
       run: poetry run pytest tests/
