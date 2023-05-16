@@ -256,8 +256,6 @@ class MultiClassWriter(BaseWriter):
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
-            segments=labels_to_process,
-            skip_missing_segment=self._skip_missing_segment,
         )
         writer_utils.set_shared_functional_groups_sequence(
             target=result, segmentation=segmentation
@@ -405,8 +403,6 @@ class FractionalWriter(BaseWriter):
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
-            segments=labels_to_process,
-            skip_missing_segment=self._skip_missing_segment,
         )
         writer_utils.set_shared_functional_groups_sequence(
             target=result, segmentation=segmentation

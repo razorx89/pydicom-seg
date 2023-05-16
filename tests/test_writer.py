@@ -260,7 +260,7 @@ class TestMultiClassWriter:
         ds = writer.write(segmentation, [])
 
         assert ds.NumberOfFrames == 1
-        assert len(ds.SegmentSequence) == 1
+        assert len(ds.SegmentSequence) == 3
 
     def test_frame_of_reference_copied_from_reference_image(self) -> None:
         data = np.ones((1, 512, 512), dtype=np.uint8)
@@ -327,7 +327,7 @@ class TestFractionalWriter:
         assert ds.NumberOfFrames == 1
         assert ds.Rows == 512
         assert ds.Columns == 512
-        assert len(ds.SegmentSequence) == 1
+        assert len(ds.SegmentSequence) == 3
         assert (ds.pixel_array == 255).all()
 
     def test_round_trip(self) -> None:
@@ -338,7 +338,7 @@ class TestFractionalWriter:
 
         reader = SegmentReader()
         result = reader.read(ds)
-        assert len(result.available_segments) == 2
+        assert len(result.available_segments) == 3
         assert np.allclose(result.segment_data(1), data[..., 0], atol=1 / 255)
         assert np.allclose(result.segment_data(2), data[..., 1], atol=1 / 255)
 
