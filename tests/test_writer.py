@@ -262,6 +262,15 @@ class TestMultiClassWriter:
         assert ds.NumberOfFrames == 1
         assert len(ds.SegmentSequence) == 3
 
+    def test_missing_segment_exception(self) -> None:
+        data = np.zeros((3, 512, 512), dtype=np.uint8)
+        data[0, 64:128, 64:128] = 1
+        data[2, -128:-64, -128:-64] = 4
+        segmentation = sitk.GetImageFromArray(data)
+        writer = MultiClassWriter(self.template, skip_missing_segment=False)
+        with pytest.raises(ValueError, match=".*declaration is missing.*"):
+            writer.write(segmentation, [])
+
     def test_frame_of_reference_copied_from_reference_image(self) -> None:
         data = np.ones((1, 512, 512), dtype=np.uint8)
         segmentation = sitk.GetImageFromArray(data)
