@@ -7,7 +7,9 @@ import pytest
 import SimpleITK as sitk
 
 from pydicom_seg import MultiClassWriter
+from pydicom_seg.reader import SegmentReader
 from pydicom_seg.template import from_dcmqi_metainfo
+from pydicom_seg.writer import FractionalWriter
 
 
 class TestMultiClassWriter:
@@ -258,3 +260,49 @@ class TestMultiClassWriter:
 
         _ = writer.write(segmentation, [dcm_path])
         _ = writer.write(segmentation, [pathlib.Path(dcm_path)])
+
+
+class TestFractionalWriter:
+    def setup(self) -> None:
+        self.template = from_dcmqi_metainfo(
+            os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                "pydicom_seg",
+                "externals",
+                "dcmqi",
+                "doc",
+                "examples",
+                "seg-example_multiple_segments_single_input_file.json",
+            )
+        )
+
+    def test_full_slice_encoding(self) -> None:
+        data = np.ones((1, 512, 512), dtype=np.float32)
+        segmentation = sitk.GetImageFromArray(data)
+        writer = FractionalWriter(self.template)
+        ds = writer.write(segmentation, [])
+
+        assert ds.NumberOfFrames == 1
+        assert ds.Rows == 512
+        assert ds.Columns == 512
+        assert len(ds.SegmentSequence) == 1
+        assert (ds.pixel_array == 255).all()
+
+    def test_round_trip(self) -> None:
+        data = np.random.uniform(0, 1, size=(1, 512, 512, 2))
+        segmentation = sitk.GetImageFromArray(data, isVector=True)
+        writer = FractionalWriter(self.template)
+        ds = writer.write(segmentation, [])
+
+        reader = SegmentReader()
+        result = reader.read(ds)
+        assert len(result.available_segments) == 2
+        assert np.allclose(result.segment_data(1), data[..., 0], atol=1 / 255)
+        assert np.allclose(result.segment_data(2), data[..., 1], atol=1 / 255)
+
+    def test_invalid_value_range(self) -> None:
+        data = np.random.uniform(0, 2, size=(1, 512, 512, 2))
+        segmentation = sitk.GetImageFromArray(data, isVector=True)
+        writer = FractionalWriter(self.template)
+        with pytest.raises(ValueError, match=".*value range.*"):
+            writer.write(segmentation, [])
