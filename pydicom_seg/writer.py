@@ -88,6 +88,33 @@ class BaseWriter:
         self._skip_missing_segment = skip_missing_segment
         self._template = template
 
+        self._validate_template()
+
+    def _validate_template(self) -> None:
+        numbers = [s.SegmentNumber for s in self._template.SegmentSequence]
+        if numbers != sorted(numbers):
+            raise ValueError(
+                "Segment numbers must be in ascending order, but found: {}".format(
+                    numbers
+                )
+            )
+        if numbers[0] != 1:
+            raise ValueError(
+                "Segment numbers must start at 1, but found: {}".format(numbers[0])
+            )
+        if len(numbers) != len(set(numbers)):
+            raise ValueError(
+                "Segment numbers must be unique, but found: {}".format(numbers)
+            )
+
+        diffs = [numbers[i + 1] - numbers[i] for i in range(len(numbers) - 1)]
+        if any([x != 1 for x in diffs]):
+            raise ValueError(
+                "Segment numbers must be monotonically increasing by one, but found: {}".format(
+                    numbers
+                )
+            )
+
 
 class MultiClassWriter(BaseWriter):
     """Writer for DICOM-SEG files from multi-class segmentations.
@@ -229,8 +256,6 @@ class MultiClassWriter(BaseWriter):
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
-            segments=labels_to_process,
-            skip_missing_segment=self._skip_missing_segment,
         )
         writer_utils.set_shared_functional_groups_sequence(
             target=result, segmentation=segmentation
@@ -378,8 +403,6 @@ class FractionalWriter(BaseWriter):
         writer_utils.copy_segmentation_template(
             target=result,
             template=self._template,
-            segments=labels_to_process,
-            skip_missing_segment=self._skip_missing_segment,
         )
         writer_utils.set_shared_functional_groups_sequence(
             target=result, segmentation=segmentation

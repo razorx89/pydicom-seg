@@ -9,7 +9,49 @@ import SimpleITK as sitk
 from pydicom_seg import MultiClassWriter
 from pydicom_seg.reader import SegmentReader
 from pydicom_seg.template import from_dcmqi_metainfo
-from pydicom_seg.writer import FractionalWriter
+from pydicom_seg.writer import BaseWriter, FractionalWriter
+
+
+class TestBaseWriter:
+    def setup(self) -> None:
+        self.template = from_dcmqi_metainfo(
+            os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                "pydicom_seg",
+                "externals",
+                "dcmqi",
+                "doc",
+                "examples",
+                "seg-example_multiple_segments_single_input_file.json",
+            )
+        )
+
+    def test_segment_numbers_start_with_one(self) -> None:
+        for segment in self.template.SegmentSequence:
+            segment.SegmentNumber += 1
+
+        with pytest.raises(ValueError, match=".*must start at 1.*"):
+            BaseWriter(self.template)
+
+    def test_segment_numbers_unique(self) -> None:
+        for segment in self.template.SegmentSequence:
+            segment.SegmentNumber = 1
+
+        with pytest.raises(ValueError, match=".*must be unique.*"):
+            BaseWriter(self.template)
+
+    def test_segment_numbers_monotonically_increasing(self) -> None:
+        self.template.SegmentSequence[2].SegmentNumber = 4
+
+        with pytest.raises(ValueError, match=".*monotonically increasing by one*"):
+            BaseWriter(self.template)
+
+    def test_segment_numbers_ordered_ascending(self) -> None:
+        self.template.SegmentSequence[0].SegmentNumber = 3
+        self.template.SegmentSequence[2].SegmentNumber = 1
+
+        with pytest.raises(ValueError, match=".*ascending*"):
+            BaseWriter(self.template)
 
 
 class TestMultiClassWriter:
@@ -218,7 +260,16 @@ class TestMultiClassWriter:
         ds = writer.write(segmentation, [])
 
         assert ds.NumberOfFrames == 1
-        assert len(ds.SegmentSequence) == 1
+        assert len(ds.SegmentSequence) == 3
+
+    def test_missing_segment_exception(self) -> None:
+        data = np.zeros((3, 512, 512), dtype=np.uint8)
+        data[0, 64:128, 64:128] = 1
+        data[2, -128:-64, -128:-64] = 4
+        segmentation = sitk.GetImageFromArray(data)
+        writer = MultiClassWriter(self.template, skip_missing_segment=False)
+        with pytest.raises(ValueError, match=".*declaration is missing.*"):
+            writer.write(segmentation, [])
 
     def test_frame_of_reference_copied_from_reference_image(self) -> None:
         data = np.ones((1, 512, 512), dtype=np.uint8)
@@ -285,7 +336,7 @@ class TestFractionalWriter:
         assert ds.NumberOfFrames == 1
         assert ds.Rows == 512
         assert ds.Columns == 512
-        assert len(ds.SegmentSequence) == 1
+        assert len(ds.SegmentSequence) == 3
         assert (ds.pixel_array == 255).all()
 
     def test_round_trip(self) -> None:
@@ -296,7 +347,7 @@ class TestFractionalWriter:
 
         reader = SegmentReader()
         result = reader.read(ds)
-        assert len(result.available_segments) == 2
+        assert len(result.available_segments) == 3
         assert np.allclose(result.segment_data(1), data[..., 0], atol=1 / 255)
         assert np.allclose(result.segment_data(2), data[..., 1], atol=1 / 255)
 

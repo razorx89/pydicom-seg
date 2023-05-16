@@ -1,5 +1,4 @@
 import logging
-from typing import Set
 
 import pydicom
 import SimpleITK as sitk
@@ -12,8 +11,6 @@ logger = logging.getLogger(__name__)
 def copy_segmentation_template(
     target: pydicom.Dataset,
     template: pydicom.Dataset,
-    segments: Set[int],
-    skip_missing_segment: bool,
 ) -> None:
     # Copy mandatory fields
     target.ClinicalTrialSeriesID = template.ClinicalTrialSeriesID
@@ -33,20 +30,7 @@ def copy_segmentation_template(
 
     # Copy segment information
     target.SegmentSequence = []
-    for segment_number in segments:
-        if segment_number == 0:
-            continue
-
-        for segment in template.SegmentSequence:
-            if segment.SegmentNumber == segment_number:
-                target.SegmentSequence.append(segment)
-                break
-        else:
-            if not skip_missing_segment:
-                raise KeyError(f"Segment {segment_number} was not declared in template")
-            logger.warning(
-                "Skipping label %d, no meta information declared", segment_number
-            )
+    target.SegmentSequence.extend(template.SegmentSequence)
 
 
 def import_hierarchy(
