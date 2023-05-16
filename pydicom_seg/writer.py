@@ -323,7 +323,6 @@ class FractionalWriter(BaseWriter):
         source_images: List[Union[pydicom.Dataset, FSPath]],
         fractional_type: SegmentationFractionalType = SegmentationFractionalType.PROBABILITY,
     ) -> pydicom.Dataset:
-
         if segmentation.GetDimension() != 3:
             raise ValueError("Only 3D segmentation data is supported")
 
@@ -333,7 +332,7 @@ class FractionalWriter(BaseWriter):
             sitk.sitkVectorFloat32,
             sitk.sitkVectorFloat64,
         ]:
-            raise ValueError("Unsigned integer data type required")
+            raise ValueError("Float data type required")
 
         # TODO Add further checks if source images are from the same series
         source_dcms = _normalize_source_images(source_images)
